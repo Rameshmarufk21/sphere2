@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* CSS 3D Sphere Animations */
+@keyframes sphere-rotate {
+  0% {
+    transform: rotateX(20deg) rotateY(0deg) rotateZ(0deg);
+  }
+  25% {
+    transform: rotateX(25deg) rotateY(90deg) rotateZ(2deg);
+  }
+  50% {
+    transform: rotateX(20deg) rotateY(180deg) rotateZ(0deg);
+  }
+  75% {
+    transform: rotateX(15deg) rotateY(270deg) rotateZ(-2deg);
+  }
+  100% {
+    transform: rotateX(20deg) rotateY(360deg) rotateZ(0deg);
+  }
+}
+
+@keyframes earth-rotate {
+  from {
+    transform: rotateX(20deg) rotateY(0deg);
+  }
+  to {
+    transform: rotateX(20deg) rotateY(360deg);
+  }
+}
+
+.sphere-rotate {
+  animation: sphere-rotate 20s linear infinite;
+}
+
+.earth-rotate {
+  animation: earth-rotate 30s linear infinite;
+}
+
+/* 3D Transform Support */
+.transform-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
