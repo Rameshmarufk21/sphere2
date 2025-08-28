@@ -1,140 +1,163 @@
 import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Sphere, Text } from '@react-three/drei';
+import { OrbitControls, Text } from '@react-three/drei';
 import * as THREE from 'three';
+import { useThoughts } from '@/lib/stores/useThoughts';
 
-// Planet data with names, sizes, distances, and colors
-const planets = [
-  { name: 'Mercury', size: 0.15, distance: 2, color: '#8B7355', speed: 1.0 },
-  { name: 'Venus', size: 0.25, distance: 3, color: '#E6BE8A', speed: 0.8 },
-  { name: 'Earth', size: 0.3, distance: 4, color: '#4B9CD3', speed: 0.7 },
-  { name: 'Mars', size: 0.2, distance: 5, color: '#CD5C5C', speed: 0.6 },
-  { name: 'Jupiter', size: 0.6, distance: 7, color: '#DAA520', speed: 0.5 },
-  { name: 'Saturn', size: 0.5, distance: 9, color: '#F4A460', speed: 0.4 },
-  { name: 'Uranus', size: 0.35, distance: 11, color: '#40E0D0', speed: 0.3 },
-  { name: 'Neptune', size: 0.35, distance: 13, color: '#1E90FF', speed: 0.25 },
-  { name: 'Pluto', size: 0.1, distance: 15, color: '#A0522D', speed: 0.2 }
-];
-
-// Planet component with orbit and rotation
-const Planet: React.FC<{ planet: typeof planets[0]; index: number }> = ({ planet, index }) => {
-  const planetRef = useRef<THREE.Mesh>(null);
+// Celestial body component (thought sphere)
+const CelestialBody: React.FC<{ 
+  thought: any; 
+  position: THREE.Vector3; 
+  size: number; 
+  isSun: boolean;
+  orbitRadius?: number;
+  orbitSpeed?: number;
+}> = ({ thought, position, size, isSun, orbitRadius, orbitSpeed }) => {
+  const bodyRef = useRef<THREE.Mesh>(null);
   const orbitRef = useRef<THREE.Group>(null);
   
   useFrame((state) => {
-    if (planetRef.current && orbitRef.current) {
-      // Rotate the planet around the sun
-      const time = state.clock.getElapsedTime();
-      const angle = time * planet.speed * 0.5; // Same speed as sphere
-      
-      orbitRef.current.rotation.y = angle;
-      
-      // Position planet on its orbit
-      planetRef.current.position.x = planet.distance;
-      planetRef.current.position.y = 0;
-      planetRef.current.position.z = 0;
-      
-      // Rotate planet on its own axis
-      planetRef.current.rotation.y += 0.02;
+    if (bodyRef.current) {
+      if (isSun) {
+        // Sun gently rotates on its axis
+        bodyRef.current.rotation.y += 0.005;
+      } else if (orbitRef.current && orbitRadius && orbitSpeed) {
+        // Planets orbit around the sun
+        const time = state.clock.getElapsedTime();
+        const angle = time * orbitSpeed * 0.5; // Same speed as sphere
+        
+        orbitRef.current.rotation.y = angle;
+        
+        // Position planet on its orbit
+        bodyRef.current.position.x = orbitRadius;
+        bodyRef.current.position.y = 0;
+        bodyRef.current.position.z = 0;
+        
+        // Rotate planet on its own axis
+        bodyRef.current.rotation.y += 0.02;
+      }
     }
   });
+
+  const material = isSun ? (
+    <meshStandardMaterial 
+      color="#FFD700" 
+      emissive="#FF8C00"
+      emissiveIntensity={0.3}
+    />
+  ) : (
+    <meshStandardMaterial 
+      color={thought.color || '#4B9CD3'} 
+      emissive={thought.color || '#4B9CD3'}
+      emissiveIntensity={0.1}
+    />
+  );
+
+  const body = (
+    <mesh ref={bodyRef}>
+      <sphereGeometry args={[size, 32, 32]} />
+      {material}
+    </mesh>
+  );
+
+  if (isSun) {
+    return (
+      <group>
+        {body}
+        {/* Sun glow effect */}
+        <mesh position={position}>
+          <sphereGeometry args={[size * 1.2, 32, 32]} />
+          <meshBasicMaterial 
+            color="#FFD700" 
+            transparent 
+            opacity={0.1}
+          />
+        </mesh>
+      </group>
+    );
+  }
 
   return (
     <group ref={orbitRef}>
-      {/* Planet */}
-      <mesh ref={planetRef}>
-        <sphereGeometry args={[planet.size, 32, 32]} />
-        <meshStandardMaterial color={planet.color} />
-      </mesh>
-      
-      {/* Planet name */}
-      <Text
-        position={[planet.distance + planet.size + 0.3, 0, 0]}
-        fontSize={0.2}
-        color="white"
-        anchorX="left"
-        anchorY="middle"
-        outlineWidth={0.01}
-        outlineColor="#000000"
-        renderOrder={1000}
-      >
-        {planet.name}
-      </Text>
-      
-      {/* Orbit ring (subtle) */}
+      {body}
+      {/* Subtle orbit ring */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[planet.distance - 0.05, planet.distance + 0.05, 64]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.1} />
+        <ringGeometry args={[orbitRadius! - 0.1, orbitRadius! + 0.1, 64]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.05} />
       </mesh>
-    </group>
-  );
-};
-
-// Sun component
-const Sun: React.FC = () => {
-  const sunRef = useRef<THREE.Mesh>(null);
-  
-  useFrame(() => {
-    if (sunRef.current) {
-      // Gentle rotation of the sun
-      sunRef.current.rotation.y += 0.005;
-    }
-  });
-
-  return (
-    <group>
-      {/* Sun */}
-      <mesh ref={sunRef} position={[0, 0, 0]}>
-        <sphereGeometry args={[1, 32, 32]} />
-        <meshStandardMaterial 
-          color="#FFD700" 
-          emissive="#FF8C00"
-          emissiveIntensity={0.3}
-        />
-      </mesh>
-      
-      {/* Sun glow effect */}
-      <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[1.2, 32, 32]} />
-        <meshBasicMaterial 
-          color="#FFD700" 
-          transparent 
-          opacity={0.1}
-        />
-      </mesh>
-      
-      {/* Sun name */}
-      <Text
-        position={[0, 1.5, 0]}
-        fontSize={0.4}
-        color="#FFD700"
-        anchorX="center"
-        anchorY="middle"
-        outlineWidth={0.02}
-        outlineColor="#FF8C00"
-        renderOrder={1000}
-      >
-        Sun
-      </Text>
     </group>
   );
 };
 
 // Main solar system scene
 const SolarSystem: React.FC = () => {
+  const { thoughts } = useThoughts();
+  
+  // Filter thoughts for sphere mode and sort by text length (larger = more important)
+  const sphereThoughts = thoughts
+    .filter(t => t.mode === 'sphere')
+    .sort((a, b) => b.text.length - a.text.length);
+  
+  // Create celestial bodies from thoughts
+  const celestialBodies = useMemo(() => {
+    if (sphereThoughts.length === 0) {
+      return [];
+    }
+    
+    const bodies = [];
+    
+    // First thought becomes the sun
+    if (sphereThoughts[0]) {
+      bodies.push({
+        thought: sphereThoughts[0],
+        position: new THREE.Vector3(0, 0, 0),
+        size: 2, // Large sun size
+        isSun: true,
+        color: '#FFD700'
+      });
+    }
+    
+    // Remaining thoughts become planets
+    const planetOrbits = [4, 6, 8, 10, 12, 14, 16, 18, 20]; // Orbit distances
+    const planetSizes = [0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2, 0.15]; // Planet sizes
+    const planetSpeeds = [1.0, 0.8, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2, 0.15]; // Orbit speeds
+    
+    for (let i = 1; i < sphereThoughts.length && i <= 9; i++) {
+      bodies.push({
+        thought: sphereThoughts[i],
+        position: new THREE.Vector3(planetOrbits[i-1], 0, 0),
+        size: planetSizes[i-1],
+        isSun: false,
+        orbitRadius: planetOrbits[i-1],
+        orbitSpeed: planetSpeeds[i-1],
+        color: `hsl(${i * 40}, 70%, 60%)` // Generate different colors
+      });
+    }
+    
+    return bodies;
+  }, [sphereThoughts]);
+
   return (
     <>
-      {/* Ambient and directional lighting */}
-      <ambientLight intensity={0.3} />
-      <directionalLight position={[10, 10, 5]} intensity={1} color="#ffffff" />
-      <pointLight position={[0, 0, 0]} intensity={2} color="#FFD700" />
+      {/* Space background with stars */}
+      <Stars />
       
-      {/* Sun */}
-      <Sun />
+      {/* Lighting */}
+      <ambientLight intensity={0.2} />
+      <directionalLight position={[10, 10, 5]} intensity={0.8} color="#ffffff" />
+      <pointLight position={[0, 0, 0]} intensity={3} color="#FFD700" />
       
-      {/* Planets */}
-      {planets.map((planet, index) => (
-        <Planet key={planet.name} planet={planet} index={index} />
+      {/* Celestial bodies */}
+      {celestialBodies.map((body, index) => (
+        <CelestialBody
+          key={body.thought.id}
+          thought={body.thought}
+          position={body.position}
+          size={body.size}
+          isSun={body.isSun}
+          orbitRadius={body.orbitRadius}
+          orbitSpeed={body.orbitSpeed}
+        />
       ))}
       
       {/* Camera controls */}
@@ -142,11 +165,49 @@ const SolarSystem: React.FC = () => {
         enablePan={true}
         enableZoom={true}
         enableRotate={true}
-        minDistance={5}
-        maxDistance={30}
+        minDistance={8}
+        maxDistance={50}
         target={[0, 0, 0]}
       />
     </>
+  );
+};
+
+// Stars background component
+const Stars: React.FC = () => {
+  const starsRef = useRef<THREE.Points>(null);
+  
+  const starsGeometry = useMemo(() => {
+    const geometry = new THREE.BufferGeometry();
+    const starCount = 2000;
+    const positions = new Float32Array(starCount * 3);
+    
+    for (let i = 0; i < starCount * 3; i += 3) {
+      positions[i] = (Math.random() - 0.5) * 100;     // x
+      positions[i + 1] = (Math.random() - 0.5) * 100; // y
+      positions[i + 2] = (Math.random() - 0.5) * 100; // z
+    }
+    
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    return geometry;
+  }, []);
+  
+  useFrame(() => {
+    if (starsRef.current) {
+      starsRef.current.rotation.y += 0.0005; // Very slow star field rotation
+    }
+  });
+
+  return (
+    <points ref={starsRef} geometry={starsGeometry}>
+      <pointsMaterial
+        size={0.1}
+        color="#ffffff"
+        transparent
+        opacity={0.8}
+        sizeAttenuation={true}
+      />
+    </points>
   );
 };
 
@@ -156,7 +217,7 @@ export const Galaxy: React.FC = () => {
     <div className="w-full h-full">
       <Canvas
         camera={{
-          position: [0, 15, 20],
+          position: [0, 20, 25],
           fov: 60,
           near: 0.1,
           far: 1000
@@ -169,7 +230,7 @@ export const Galaxy: React.FC = () => {
         style={{ 
           width: '100%', 
           height: '100%',
-          background: 'linear-gradient(to bottom, #0B1426, #1a1a2e, #16213e)'
+          background: 'radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0B1426 100%)'
         }}
       >
         <SolarSystem />
