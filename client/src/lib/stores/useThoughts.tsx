@@ -168,6 +168,32 @@ export const useThoughts = create<ThoughtsState>()(
         const { position, rotation } = state.generateThoughtPosition();
         const targetSphereId = sphereId || state.currentSphereId || state.thoughts.find(t => t.isMainSphere)?.sphereId;
         
+        // Check if this is the first thought in a fresh sphere (no sphere structure exists yet)
+        const isFirstThoughtInFreshSphere = targetSphereId && !state.thoughts.some(t => t.thoughtType === 'sphere' && t.sphereId === targetSphereId);
+        
+        if (isFirstThoughtInFreshSphere) {
+          // Create the sphere structure first
+          const sphereThought: Thought = {
+            id: Math.random().toString(36).substr(2, 9),
+            text: text.trim(),
+            title,
+            position: new THREE.Vector3(0, 0, 0),
+            rotation: new THREE.Euler(0, 0, 0),
+            createdAt: new Date(),
+            parentId: undefined,
+            mode: 'sphere',
+            attachments: undefined,
+            isMainSphere: false,
+            sphereId: targetSphereId,
+            thoughtType: 'sphere'
+          };
+          
+          // Add the sphere structure first
+          set((prevState) => ({
+            thoughts: [...prevState.thoughts, sphereThought]
+          }));
+        }
+        
         newThought = {
           id: Math.random().toString(36).substr(2, 9),
           text: text.trim(),

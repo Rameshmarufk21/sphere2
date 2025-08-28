@@ -255,6 +255,19 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
     ? getSpheres().find(s => s.sphereId === currentSphereId)
     : getSpheres().find(s => s.isMainSphere);
     
+  // Get title from current sphere or from first thought in current sphere
+  const getCurrentSphereTitle = () => {
+    if (currentSphere) {
+      return currentSphere.title;
+    }
+    if (currentSphereId) {
+      // If we have a currentSphereId but no sphere object, get title from first thought
+      const firstThought = thoughts.find(t => t.sphereId === currentSphereId);
+      return firstThought?.title || 'New Sphere';
+    }
+    return 'Enter your first thought';
+  };
+    
   console.log('ThoughtSphere render - currentSphereId:', currentSphereId);
   console.log('Current sphere:', currentSphere);
   console.log('Current thoughts count:', currentThoughts.length);
@@ -266,7 +279,7 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
     : null;
   
   // Get current sphere title for display in center
-  const sphereTitle = currentSphere?.title || (currentSphereId ? 'New Sphere' : 'Enter your first thought');
+  const sphereTitle = getCurrentSphereTitle();
   const [isDay, setIsDay] = useState(isDaytime());
   
   // Check time every minute
