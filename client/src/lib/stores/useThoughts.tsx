@@ -16,6 +16,10 @@ export interface Thought {
     links?: string[];
     files?: string[];
   };
+  // New fields for sphere hierarchy
+  isMainSphere?: boolean; // True for the main sphere, false for sub-spheres
+  sphereId?: string; // ID of the sphere this thought belongs to
+  thoughtType?: 'sphere' | 'thought'; // Whether this creates a sphere or is just a thought
 }
 
 interface ThoughtsState {
@@ -24,10 +28,11 @@ interface ThoughtsState {
   sphereCenter: THREE.Vector3;
   targetRotation: { x: number; y: number } | null;
   currentParentId: string | null;
+  currentSphereId: string | null; // Current sphere being viewed
   viewMode: 'sphere' | 'list' | 'galaxy';
   
   // Actions
-  addThought: (text: string, attachments?: any) => void;
+  addThought: (text: string, attachments?: any, sphereId?: string) => void;
   removeThought: (id: string) => void;
   updateThought: (id: string, text: string) => void;
   setInputMode: (mode: boolean) => void;
@@ -37,8 +42,11 @@ interface ThoughtsState {
   navigateToThought: (thoughtId: string) => void;
   navigateBack: () => void;
   setViewMode: (mode: 'sphere' | 'list' | 'galaxy') => void;
+  navigateToSphere: (sphereId: string) => void; // Navigate to a specific sphere
   generateThoughtPosition: () => { position: THREE.Vector3; rotation: THREE.Euler };
   getMainSphereTitle: () => string | null;
+  getSphereThoughts: (sphereId: string) => Thought[]; // Get thoughts for a specific sphere
+  getSpheres: () => Thought[]; // Get all sphere-creating thoughts
 }
 
 // Enhanced spherical distribution similar to word cloud reference
@@ -100,9 +108,10 @@ export const useThoughts = create<ThoughtsState>()(
     sphereCenter: new THREE.Vector3(0, 0, 0),
     targetRotation: null,
     currentParentId: null,
+    currentSphereId: null,
     viewMode: 'sphere',
     
-    addThought: (text: string, attachments?: any) => {
+    addThought: (text: string, attachments?: any, sphereId?: string) => {
       const state = get();
       
       // Extract first word as title
@@ -210,6 +219,20 @@ export const useThoughts = create<ThoughtsState>()(
       const dynamicRadius = baseRadius * expansionFactor;
       
       return generateRandomSpherePosition(dynamicRadius, existingPositions);
+    },
+    
+    navigateToSphere: (sphereId: string) => {
+      set({ currentSphereId: sphereId });
+    },
+    
+    getSphereThoughts: (sphereId: string) => {
+      const state = get();
+      return state.thoughts.filter(t => t.sphereId === sphereId && t.thoughtType === 'thought');
+    },
+    
+    getSpheres: () => {
+      const state = get();
+      return state.thoughts.filter(t => t.thoughtType === 'sphere');
     },
     
     getMainSphereTitle: () => {

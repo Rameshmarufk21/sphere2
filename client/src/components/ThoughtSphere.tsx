@@ -242,18 +242,26 @@ const CameraController: React.FC = () => {
 const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClick }) => {
   const { thoughts, currentParentId, navigateBack } = useThoughts();
   
-  // Filter thoughts based on current navigation level and mode
-  const currentThoughts = currentParentId 
-    ? thoughts.filter(t => t.parentId === currentParentId && t.mode === 'sphere')
-    : thoughts.filter(t => !t.parentId && t.mode === 'sphere').slice(1); // Skip first thought (center title)
+  // Filter thoughts based on current sphere
+  const { currentSphereId, getSphereThoughts, getSpheres } = useThoughts();
+  
+  // Get thoughts for current sphere or main sphere if none selected
+  const currentThoughts = currentSphereId 
+    ? getSphereThoughts(currentSphereId)
+    : thoughts.filter(t => t.isMainSphere && t.mode === 'sphere');
+  
+  // Get current sphere info
+  const currentSphere = currentSphereId 
+    ? getSpheres().find(s => s.sphereId === currentSphereId)
+    : getSpheres().find(s => s.isMainSphere);
 
   // Get center thought if we're in a nested view
   const centerThought = currentParentId 
     ? thoughts.find(t => t.id === currentParentId)
     : null;
   
-  // Get main sphere title for display in center
-  const mainSphereTitle = useThoughts(state => state.getMainSphereTitle());
+  // Get current sphere title for display in center
+  const sphereTitle = currentSphere?.title || 'New Sphere';
   const [isDay, setIsDay] = useState(isDaytime());
   
   // Check time every minute
@@ -297,8 +305,8 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
         </mesh>
       )}
       
-      {/* Display main sphere title in center when thoughts exist */}
-      {!currentParentId && mainSphereTitle && (
+      {/* Display current sphere title in center when thoughts exist */}
+      {!currentParentId && sphereTitle && (
         <Billboard position={[0, 0, 0]} follow renderOrder={2000}>
           <Text
             fontSize={0.4}
@@ -313,7 +321,7 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
             fillOpacity={0.98}
             renderOrder={2000}
           >
-            {mainSphereTitle}
+            {sphereTitle}
           </Text>
         </Billboard>
       )}
@@ -361,6 +369,32 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
             }}
           >
             ← Back to Main Sphere
+          </div>
+        </Html>
+      )}
+      
+      {/* Back to Galaxy button when viewing a sphere */}
+      {currentSphereId && (
+        <Html fullscreen style={{ pointerEvents: 'none' }}>
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '40px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              color: '#94a3b8',
+              fontWeight: 600,
+              cursor: 'pointer',
+              userSelect: 'none',
+              textShadow: 'none',
+              pointerEvents: 'auto'
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              useThoughts.getState().setViewMode('galaxy');
+            }}
+          >
+            ← Back to Galaxy
           </div>
         </Html>
       )}

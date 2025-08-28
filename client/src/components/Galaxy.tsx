@@ -12,7 +12,8 @@ const CelestialBody: React.FC<{
   isSun: boolean;
   orbitRadius?: number;
   orbitSpeed?: number;
-}> = ({ thought, position, size, isSun, orbitRadius, orbitSpeed }) => {
+  onClick?: () => void;
+}> = ({ thought, position, size, isSun, orbitRadius, orbitSpeed, onClick }) => {
   const bodyRef = useRef<THREE.Mesh>(null);
   const orbitRef = useRef<THREE.Group>(null);
   
@@ -54,7 +55,7 @@ const CelestialBody: React.FC<{
   );
 
   const body = (
-    <mesh ref={bodyRef}>
+    <mesh ref={bodyRef} onClick={onClick}>
       <sphereGeometry args={[size, 32, 32]} />
       {material}
     </mesh>
@@ -91,25 +92,23 @@ const CelestialBody: React.FC<{
 
 // Main solar system scene
 const SolarSystem: React.FC = () => {
-  const { thoughts } = useThoughts();
+  const { thoughts, getSpheres, navigateToSphere, setViewMode } = useThoughts();
   
-  // Filter thoughts for sphere mode and sort by text length (larger = more important)
-  const sphereThoughts = thoughts
-    .filter(t => t.mode === 'sphere')
-    .sort((a, b) => b.text.length - a.text.length);
+  // Get all sphere-creating thoughts and sort by text length (larger = more important)
+  const spheres = getSpheres().sort((a, b) => b.text.length - a.text.length);
   
-  // Create celestial bodies from thoughts
+  // Create celestial bodies from spheres
   const celestialBodies = useMemo(() => {
-    if (sphereThoughts.length === 0) {
+    if (spheres.length === 0) {
       return [];
     }
     
     const bodies = [];
     
-    // First thought becomes the sun
-    if (sphereThoughts[0]) {
+    // First sphere becomes the sun
+    if (spheres[0]) {
       bodies.push({
-        thought: sphereThoughts[0],
+        thought: spheres[0],
         position: new THREE.Vector3(0, 0, 0),
         size: 2, // Large sun size
         isSun: true,
@@ -117,14 +116,14 @@ const SolarSystem: React.FC = () => {
       });
     }
     
-    // Remaining thoughts become planets
+    // Remaining spheres become planets
     const planetOrbits = [4, 6, 8, 10, 12, 14, 16, 18, 20]; // Orbit distances
     const planetSizes = [0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2, 0.15]; // Planet sizes
     const planetSpeeds = [1.0, 0.8, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2, 0.15]; // Orbit speeds
     
-    for (let i = 1; i < sphereThoughts.length && i <= 9; i++) {
+    for (let i = 1; i < spheres.length && i <= 9; i++) {
       bodies.push({
-        thought: sphereThoughts[i],
+        thought: spheres[i],
         position: new THREE.Vector3(planetOrbits[i-1], 0, 0),
         size: planetSizes[i-1],
         isSun: false,
@@ -135,7 +134,13 @@ const SolarSystem: React.FC = () => {
     }
     
     return bodies;
-  }, [sphereThoughts]);
+  }, [spheres]);
+  
+  // Handle sphere click - navigate to that sphere
+  const handleSphereClick = (sphereId: string) => {
+    navigateToSphere(sphereId);
+    setViewMode('sphere'); // Switch back to sphere view
+  };
 
   return (
     <>
@@ -157,6 +162,7 @@ const SolarSystem: React.FC = () => {
           isSun={body.isSun}
           orbitRadius={body.orbitRadius}
           orbitSpeed={body.orbitSpeed}
+          onClick={() => handleSphereClick(body.thought.sphereId!)}
         />
       ))}
       

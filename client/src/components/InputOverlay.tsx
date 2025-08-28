@@ -52,7 +52,8 @@ export const InputOverlay: React.FC<InputOverlayProps> = ({ isVisible, onClose, 
       
       addThought(
         inputValue, 
-        hasAttachments ? attachments : undefined
+        hasAttachments ? attachments : undefined,
+        useThoughts.getState().currentSphereId || undefined
       );
       setInputValue('');
       setAttachments({images: [], links: [], files: []});
