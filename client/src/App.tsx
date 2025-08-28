@@ -3,7 +3,7 @@ import { ThoughtSphere } from '@/components/ThoughtSphere';
 import { InputOverlay } from '@/components/InputOverlay';
 import { Menu } from '@/components/Menu';
 import { ListView } from '@/components/ListView';
-import { Galaxy } from '@/components/Galaxy';
+import Galaxy from '@/components/Galaxy';
 import { useThoughts } from '@/lib/stores/useThoughts';
 import '@fontsource/inter';
 

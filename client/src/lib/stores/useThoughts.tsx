@@ -50,6 +50,7 @@ interface ThoughtsState {
   getSpheres: () => Thought[]; // Get all sphere-creating thoughts
   resetToMainSphere: () => void;
   createFreshSphere: () => string;
+  createSubsphere: (originalThought: Thought) => string;
 }
 
 // Enhanced spherical distribution similar to word cloud reference
@@ -316,6 +317,36 @@ export const useThoughts = create<ThoughtsState>()(
       // Create a new sphere ID
       const newSphereId = Math.random().toString(36).substr(2, 9);
       set({ currentSphereId: newSphereId });
+      return newSphereId;
+    },
+    
+    createSubsphere: (originalThought: Thought) => {
+      const state = get();
+      // Create a new sphere ID for the subsphere
+      const newSphereId = Math.random().toString(36).substr(2, 9);
+      
+      // Create the sphere structure with the original thought as title
+      const sphereThought: Thought = {
+        id: Math.random().toString(36).substr(2, 9),
+        text: originalThought.text,
+        title: originalThought.title,
+        position: new THREE.Vector3(0, 0, 0),
+        rotation: new THREE.Euler(0, 0, 0),
+        createdAt: new Date(),
+        parentId: originalThought.sphereId, // Link back to parent sphere
+        mode: 'sphere',
+        attachments: undefined,
+        isMainSphere: false,
+        sphereId: newSphereId,
+        thoughtType: 'sphere'
+      };
+      
+      // Add the sphere structure and set as current
+      set((prevState) => ({
+        thoughts: [...prevState.thoughts, sphereThought],
+        currentSphereId: newSphereId
+      }));
+      
       return newSphereId;
     }
   }))

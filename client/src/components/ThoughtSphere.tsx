@@ -167,8 +167,10 @@ const ThoughtText: React.FC<{ thought: any; index: number; totalThoughts: number
               // Single click - focus on thought
               focusOnThought(thought.position);
             } else if (e.detail === 2) {
-              // Double click - navigate to nested sphere
-              navigateToThought(thought.id);
+              // Double click - create subsphere with this thought
+              const { createSubsphere } = useThoughts.getState();
+              // Create a new subsphere with this thought as the center
+              createSubsphere(thought);
             }
           }}
         >
@@ -231,7 +233,7 @@ const CameraController: React.FC = () => {
       enablePan={true}
       enableZoom={true}
       enableRotate={true}
-      minDistance={2}
+      minDistance={1.5}
       maxDistance={20}
       target={[0, 0, 0]}
     />
@@ -312,7 +314,7 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
         </>
       )}
       
-      {/* Show wireframe sphere only when no thoughts exist */}
+      {/* Show wireframe sphere when no thoughts exist - this is the main visual */}
       {showWireframe && <Sphere onClick={onSphereClick} isSubSphere={Boolean(currentParentId)} />}
       
       {/* Invisible clickable sphere when wireframe is hidden - smaller to avoid blocking thoughts */}
