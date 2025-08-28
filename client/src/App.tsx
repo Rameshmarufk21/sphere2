@@ -106,7 +106,6 @@ function App() {
       <Menu 
         currentView={currentView} 
         onViewChange={setCurrentView}
-        onNewThought={handleNewThought}
       />
       
       {/* Main Content */}

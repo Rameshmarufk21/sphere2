@@ -4,7 +4,6 @@ import { useThoughts } from '@/lib/stores/useThoughts';
 interface MenuProps {
   currentView: 'sphere' | 'list' | 'galaxy';
   onViewChange: (view: 'sphere' | 'list' | 'galaxy') => void;
-  onNewThought: () => void;
 }
 
 const isDaytime = () => {
@@ -12,7 +11,7 @@ const isDaytime = () => {
   return hour >= 6 && hour < 18;
 };
 
-export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange, onNewThought }) => {
+export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDay] = useState(isDaytime());
 
@@ -68,22 +67,26 @@ export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange, onNewThou
             boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
           }}
         >
-          {/* New Thought Button */}
+          {/* New Thought Button - Default Sphere View */}
           <button
             onClick={() => {
-              onNewThought();
+              onViewChange('sphere');
               setIsOpen(false);
             }}
             className="w-full px-4 py-3 text-left transition-colors duration-200 flex items-center border-b border-gray-200"
             style={{
               color: menuColor,
-              backgroundColor: 'transparent',
+              backgroundColor: currentView === 'sphere' ? hoverColor : 'transparent',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = hoverColor;
+              if (currentView !== 'sphere') {
+                e.currentTarget.style.backgroundColor = hoverColor;
+              }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
+              if (currentView !== 'sphere') {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
             }}
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

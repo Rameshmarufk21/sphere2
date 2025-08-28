@@ -16,7 +16,7 @@ export interface Thought {
     links?: string[];
     files?: string[];
   };
-  // New fields for sphere hierarchy
+  // Fields for sphere hierarchy
   isMainSphere?: boolean; // True for the main sphere, false for sub-spheres
   sphereId?: string; // ID of the sphere this thought belongs to
   thoughtType?: 'sphere' | 'thought'; // Whether this creates a sphere or is just a thought
@@ -118,26 +118,30 @@ export const useThoughts = create<ThoughtsState>()(
       const words = text.trim().split(' ');
       const title = words[0] || text.trim();
       
-      // Check if this is the first thought (main sphere title)
+      // Determine if this thought creates a new sphere
       const isFirstThought = state.thoughts.length === 0;
+      const isSphereThought = isFirstThought || text.length > 25; // Longer threshold for sphere creation
       
       let newThought: Thought;
       
       if (isFirstThought) {
-        // First thought becomes the center title - no position needed
+        // First thought becomes the main sphere
         newThought = {
           id: Math.random().toString(36).substr(2, 9),
           text: text.trim(),
           title,
-          position: new THREE.Vector3(0, 0, 0), // Center position
-          rotation: new THREE.Euler(0, 0, 0), // No rotation
+          position: new THREE.Vector3(0, 0, 0),
+          rotation: new THREE.Euler(0, 0, 0),
           createdAt: new Date(),
           parentId: undefined,
           mode: 'sphere',
           attachments,
+          isMainSphere: true,
+          sphereId: Math.random().toString(36).substr(2, 9),
+          thoughtType: 'sphere'
         };
-      } else {
-        // Subsequent thoughts get positioned on the sphere surface
+      } else if (isSphereThought) {
+        // Long thoughts become new spheres (subspheres)
         const { position, rotation } = state.generateThoughtPosition();
         newThought = {
           id: Math.random().toString(36).substr(2, 9),
@@ -146,9 +150,29 @@ export const useThoughts = create<ThoughtsState>()(
           position,
           rotation,
           createdAt: new Date(),
-          parentId: state.currentParentId || undefined,
+          parentId: sphereId || state.currentSphereId || undefined,
           mode: 'sphere',
           attachments,
+          isMainSphere: false,
+          sphereId: Math.random().toString(36).substr(2, 9),
+          thoughtType: 'sphere'
+        };
+      } else {
+        // Regular thoughts within a sphere
+        const { position, rotation } = state.generateThoughtPosition();
+        newThought = {
+          id: Math.random().toString(36).substr(2, 9),
+          text: text.trim(),
+          title,
+          position,
+          rotation,
+          createdAt: new Date(),
+          parentId: sphereId || state.currentSphereId || undefined,
+          mode: 'sphere',
+          attachments,
+          isMainSphere: false,
+          sphereId: sphereId || state.currentSphereId || undefined,
+          thoughtType: 'thought'
         };
       }
       

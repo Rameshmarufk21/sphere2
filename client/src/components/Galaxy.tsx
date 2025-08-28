@@ -92,12 +92,12 @@ const CelestialBody: React.FC<{
 
 // Main solar system scene
 const SolarSystem: React.FC = () => {
-  const { thoughts, getSpheres, navigateToSphere, setViewMode } = useThoughts();
+  const { getSpheres, navigateToSphere, setViewMode } = useThoughts();
   
-  // Get all sphere-creating thoughts and sort by text length (larger = more important)
-  const spheres = getSpheres().sort((a, b) => b.text.length - a.text.length);
+  // Get all existing spheres (not thoughts)
+  const spheres = getSpheres();
   
-  // Create celestial bodies from spheres
+  // Create celestial bodies from existing spheres
   const celestialBodies = useMemo(() => {
     if (spheres.length === 0) {
       return [];
@@ -136,7 +136,7 @@ const SolarSystem: React.FC = () => {
     return bodies;
   }, [spheres]);
   
-  // Handle sphere click - navigate to that sphere
+  // Handle sphere click - navigate to that sphere's thought page
   const handleSphereClick = (sphereId: string) => {
     navigateToSphere(sphereId);
     setViewMode('sphere'); // Switch back to sphere view

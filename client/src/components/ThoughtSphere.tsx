@@ -248,7 +248,7 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
   // Get thoughts for current sphere or main sphere if none selected
   const currentThoughts = currentSphereId 
     ? getSphereThoughts(currentSphereId)
-    : thoughts.filter(t => t.isMainSphere && t.mode === 'sphere');
+    : thoughts.filter(t => t.thoughtType === 'thought' && (t.sphereId === currentSphereId || t.isMainSphere));
   
   // Get current sphere info
   const currentSphere = currentSphereId 
@@ -261,7 +261,7 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
     : null;
   
   // Get current sphere title for display in center
-  const sphereTitle = currentSphere?.title || 'New Sphere';
+  const sphereTitle = currentSphere?.title || 'Enter your first thought';
   const [isDay, setIsDay] = useState(isDaytime());
   
   // Check time every minute
@@ -306,7 +306,7 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
       )}
       
       {/* Display current sphere title in center when thoughts exist */}
-      {!currentParentId && sphereTitle && (
+      {!currentParentId && currentSphere && sphereTitle && (
         <Billboard position={[0, 0, 0]} follow renderOrder={2000}>
           <Text
             fontSize={0.4}
