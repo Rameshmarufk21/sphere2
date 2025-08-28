@@ -46,16 +46,13 @@ export const InputOverlay: React.FC<InputOverlayProps> = ({ isVisible, onClose, 
       const hasAttachments = attachments.images.length || attachments.links.length || attachments.files.length;
       console.log('Adding thought:', {
         text: inputValue,
-        mode: currentView === 'earth' ? 'earth' : 'sphere',
-        attachments: hasAttachments ? attachments : undefined,
-        useGeolocation: currentView === 'earth'
+        mode: 'sphere',
+        attachments: hasAttachments ? attachments : undefined
       });
       
       addThought(
         inputValue, 
-        currentView === 'earth' ? 'earth' : 'sphere',
-        hasAttachments ? attachments : undefined, 
-        currentView === 'earth'
+        hasAttachments ? attachments : undefined
       );
       setInputValue('');
       setAttachments({images: [], links: [], files: []});

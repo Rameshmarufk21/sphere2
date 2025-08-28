@@ -251,6 +251,9 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
   const centerThought = currentParentId 
     ? thoughts.find(t => t.id === currentParentId)
     : null;
+  
+  // Get main sphere title for display in center
+  const mainSphereTitle = useThoughts(state => state.getMainSphereTitle());
   const [isDay, setIsDay] = useState(isDaytime());
   
   // Check time every minute
@@ -292,6 +295,27 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
           <sphereGeometry args={[1.5, 32, 32]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} />
         </mesh>
+      )}
+      
+      {/* Display main sphere title in center when thoughts exist */}
+      {!currentParentId && mainSphereTitle && (
+        <Billboard position={[0, 0, 0]} follow renderOrder={2000}>
+          <Text
+            fontSize={0.4}
+            maxWidth={4}
+            lineHeight={1.1}
+            textAlign="center"
+            anchorX="center"
+            anchorY="middle"
+            color="#ef4444"
+            outlineWidth={0.02}
+            outlineColor="#ffffff"
+            fillOpacity={0.98}
+            renderOrder={2000}
+          >
+            {mainSphereTitle}
+          </Text>
+        </Billboard>
       )}
 
       {/* Render center thought in nested view */}

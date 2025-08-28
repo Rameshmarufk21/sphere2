@@ -5,20 +5,16 @@ import * as THREE from "three";
 export interface Thought {
   id: string;
   text: string;
+  title: string; // First word becomes the title
   position: THREE.Vector3;
   rotation: THREE.Euler;
   createdAt: Date;
   parentId?: string;
-  mode: 'sphere' | 'earth'; // Add mode to separate sphere and earth thoughts
+  mode: 'sphere'; // Simplified to just sphere mode
   attachments?: {
     images?: string[];
     links?: string[];
     files?: string[];
-  };
-  geolocation?: {
-    latitude: number;
-    longitude: number;
-    address?: string;
   };
 }
 
@@ -28,12 +24,10 @@ interface ThoughtsState {
   sphereCenter: THREE.Vector3;
   targetRotation: { x: number; y: number } | null;
   currentParentId: string | null;
-  viewMode: 'sphere' | 'list' | 'earth';
-  isEarthMode: boolean;
-  userLocation: { latitude: number; longitude: number } | null;
+  viewMode: 'sphere' | 'list';
   
   // Actions
-      addThought: (text: string, mode: 'sphere' | 'earth', attachments?: any, useGeolocation?: boolean) => void;
+  addThought: (text: string, attachments?: any) => void;
   removeThought: (id: string) => void;
   updateThought: (id: string, text: string) => void;
   setInputMode: (mode: boolean) => void;
@@ -42,9 +36,9 @@ interface ThoughtsState {
   clearTargetRotation: () => void;
   navigateToThought: (thoughtId: string) => void;
   navigateBack: () => void;
-  setViewMode: (mode: 'sphere' | 'list' | 'earth') => void;
-  setUserLocation: (location: { latitude: number; longitude: number }) => void;
-  generateThoughtPosition: (useGeolocation?: boolean) => { position: THREE.Vector3; rotation: THREE.Euler };
+  setViewMode: (mode: 'sphere' | 'list') => void;
+  generateThoughtPosition: () => { position: THREE.Vector3; rotation: THREE.Euler };
+  getMainSphereTitle: () => string | null;
 }
 
 // Enhanced spherical distribution similar to word cloud reference
@@ -107,27 +101,26 @@ export const useThoughts = create<ThoughtsState>()(
     targetRotation: null,
     currentParentId: null,
     viewMode: 'sphere',
-    isEarthMode: false,
-    userLocation: null,
     
-    addThought: (text: string, mode: 'sphere' | 'earth', attachments?: any, useGeolocation?: boolean) => {
+    addThought: (text: string, attachments?: any) => {
       const state = get();
-      const { position, rotation } = state.generateThoughtPosition(useGeolocation, mode);
+      const { position, rotation } = state.generateThoughtPosition();
+      
+      // Extract first word as title
+      const words = text.trim().split(' ');
+      const title = words[0] || text.trim();
+      
       const newThought: Thought = {
         id: Math.random().toString(36).substr(2, 9),
         text: text.trim(),
+        title,
         position,
         rotation,
         createdAt: new Date(),
         parentId: state.currentParentId || undefined,
-        mode,
+        mode: 'sphere',
         attachments,
       };
-
-      // Add geolocation if in Earth mode and location available
-      if (useGeolocation && state.userLocation && mode === 'earth') {
-        newThought.geolocation = state.userLocation;
-      }
       
       set((prevState) => ({
         thoughts: [...prevState.thoughts, newThought],
@@ -180,46 +173,29 @@ export const useThoughts = create<ThoughtsState>()(
       set({ currentParentId: currentThought?.parentId || null });
     },
 
-    setViewMode: (mode: 'sphere' | 'list' | 'earth') => {
-      set({ viewMode: mode, isEarthMode: mode === 'earth' });
+    setViewMode: (mode: 'sphere' | 'list') => {
+      set({ viewMode: mode });
     },
 
-    setUserLocation: (location: { latitude: number; longitude: number }) => {
-      set({ userLocation: location });
-    },
-
-    generateThoughtPosition: (useGeolocation?: boolean, mode?: 'sphere' | 'earth') => {
+    generateThoughtPosition: () => {
       const state = get();
-      // Filter existing positions by mode to avoid conflicts
-      const existingPositions = state.thoughts
-        .filter(t => t.mode === mode)
-        .map(t => t.position);
+      // Get all existing positions for spacing
+      const existingPositions = state.thoughts.map(t => t.position);
       
-      if (useGeolocation && state.userLocation && mode === 'earth') {
-        // Convert lat/lng to sphere position for Earth mode
-        const lat = (state.userLocation.latitude * Math.PI) / 180;
-        const lng = (state.userLocation.longitude * Math.PI) / 180;
-        const radius = 2.3;
-        
-        const x = radius * Math.cos(lat) * Math.cos(lng);
-        const y = radius * Math.sin(lat);
-        const z = radius * Math.cos(lat) * Math.sin(lng);
-        
-        const position = new THREE.Vector3(x, y, z);
-        const rotation = new THREE.Euler();
-        rotation.setFromVector3(position.clone().normalize());
-        
-        return { position, rotation };
-      }
-      
-      // Calculate dynamic sphere radius based on thought count for sphere mode
+      // Calculate dynamic sphere radius based on thought count
       // Expand sphere when we have many thoughts to maintain spacing
       const baseRadius = 3.5; // Increased from 2.3 to ensure thoughts are always visible
-      const sphereThoughts = state.thoughts.filter(t => t.mode === 'sphere');
-      const expansionFactor = Math.max(1, Math.sqrt(sphereThoughts.length / 8)); // Start expanding after 8 thoughts
+      const expansionFactor = Math.max(1, Math.sqrt(state.thoughts.length / 8)); // Start expanding after 8 thoughts
       const dynamicRadius = baseRadius * expansionFactor;
       
       return generateRandomSpherePosition(dynamicRadius, existingPositions);
+    },
+    
+    getMainSphereTitle: () => {
+      const state = get();
+      // Get the first thought in sphere mode (main sphere) to use as title
+      const mainSphereThoughts = state.thoughts.filter(t => !t.parentId && t.mode === 'sphere');
+      return mainSphereThoughts.length > 0 ? mainSphereThoughts[0].title : null;
     }
   }))
 );
