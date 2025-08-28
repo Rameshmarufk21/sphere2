@@ -67,27 +67,12 @@ export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
             boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
           }}
         >
-          {/* New Thought Button - Default Sphere View */}
+          {/* New Thought Button */}
           <button
-            onClick={() => {
-              onViewChange('sphere');
-              setIsOpen(false);
-            }}
-            className="w-full px-4 py-3 text-left transition-colors duration-200 flex items-center border-b border-gray-200"
-            style={{
-              color: menuColor,
-              backgroundColor: currentView === 'sphere' ? hoverColor : 'transparent',
-            }}
-            onMouseEnter={(e) => {
-              if (currentView !== 'sphere') {
-                e.currentTarget.style.backgroundColor = hoverColor;
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (currentView !== 'sphere') {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
+            onClick={() => onViewChange('sphere')}
+            className={`w-full flex items-center px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-lg ${
+              currentView === 'sphere' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'
+            }`}
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

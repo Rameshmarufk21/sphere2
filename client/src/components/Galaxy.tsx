@@ -1,248 +1,53 @@
-import React, { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Text } from '@react-three/drei';
-import * as THREE from 'three';
-import { useThoughts } from '@/lib/stores/useThoughts';
+import React from 'react';
+import { useThoughts } from '../lib/stores/useThoughts';
 
-// Celestial body component (thought sphere)
-const CelestialBody: React.FC<{ 
-  thought: any; 
-  position: THREE.Vector3; 
-  size: number; 
-  isSun: boolean;
-  orbitRadius?: number;
-  orbitSpeed?: number;
-  onClick?: () => void;
-}> = ({ thought, position, size, isSun, orbitRadius, orbitSpeed, onClick }) => {
-  const bodyRef = useRef<THREE.Mesh>(null);
-  const orbitRef = useRef<THREE.Group>(null);
-  
-  useFrame((state) => {
-    if (bodyRef.current) {
-      if (isSun) {
-        // Sun gently rotates on its axis
-        bodyRef.current.rotation.y += 0.005;
-      } else if (orbitRef.current && orbitRadius && orbitSpeed) {
-        // Planets orbit around the sun
-        const time = state.clock.getElapsedTime();
-        const angle = time * orbitSpeed * 0.5; // Same speed as sphere
-        
-        orbitRef.current.rotation.y = angle;
-        
-        // Position planet on its orbit
-        bodyRef.current.position.x = orbitRadius;
-        bodyRef.current.position.y = 0;
-        bodyRef.current.position.z = 0;
-        
-        // Rotate planet on its own axis
-        bodyRef.current.rotation.y += 0.02;
-      }
-    }
-  });
-
-  const material = isSun ? (
-    <meshStandardMaterial 
-      color="#FFD700" 
-      emissive="#FF8C00"
-      emissiveIntensity={0.3}
-    />
-  ) : (
-    <meshStandardMaterial 
-      color={thought.color || '#4B9CD3'} 
-      emissive={thought.color || '#4B9CD3'}
-      emissiveIntensity={0.1}
-    />
-  );
-
-  const body = (
-    <mesh ref={bodyRef} onClick={onClick}>
-      <sphereGeometry args={[size, 32, 32]} />
-      {material}
-    </mesh>
-  );
-
-  if (isSun) {
-    return (
-      <group>
-        {body}
-        {/* Sun glow effect */}
-        <mesh position={position}>
-          <sphereGeometry args={[size * 1.2, 32, 32]} />
-          <meshBasicMaterial 
-            color="#FFD700" 
-            transparent 
-            opacity={0.1}
-          />
-        </mesh>
-      </group>
-    );
-  }
-
-  return (
-    <group ref={orbitRef}>
-      {body}
-      {/* Subtle orbit ring */}
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[orbitRadius! - 0.1, orbitRadius! + 0.1, 64]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.05} />
-      </mesh>
-    </group>
-  );
-};
-
-// Main solar system scene
-const SolarSystem: React.FC = () => {
+const Galaxy: React.FC = () => {
   const { getSpheres, navigateToSphere, setViewMode } = useThoughts();
-  
-  // Get all existing spheres (not thoughts)
   const spheres = getSpheres();
-  
-  // Create celestial bodies from existing spheres
-  const celestialBodies = useMemo(() => {
-    if (spheres.length === 0) {
-      return [];
-    }
-    
-    const bodies = [];
-    
-    // First sphere becomes the sun
-    if (spheres[0]) {
-      bodies.push({
-        thought: spheres[0],
-        position: new THREE.Vector3(0, 0, 0),
-        size: 2, // Large sun size
-        isSun: true,
-        color: '#FFD700'
-      });
-    }
-    
-    // Remaining spheres become planets
-    const planetOrbits = [4, 6, 8, 10, 12, 14, 16, 18, 20]; // Orbit distances
-    const planetSizes = [0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2, 0.15]; // Planet sizes
-    const planetSpeeds = [1.0, 0.8, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2, 0.15]; // Orbit speeds
-    
-    for (let i = 1; i < spheres.length && i <= 9; i++) {
-      bodies.push({
-        thought: spheres[i],
-        position: new THREE.Vector3(planetOrbits[i-1], 0, 0),
-        size: planetSizes[i-1],
-        isSun: false,
-        orbitRadius: planetOrbits[i-1],
-        orbitSpeed: planetSpeeds[i-1],
-        color: `hsl(${i * 40}, 70%, 60%)` // Generate different colors
-      });
-    }
-    
-    return bodies;
-  }, [spheres]);
-  
-  // Handle sphere click - navigate to that sphere's thought page
+
   const handleSphereClick = (sphereId: string) => {
     console.log('Navigating to sphere:', sphereId);
-    const { navigateToSphere, setViewMode } = useThoughts.getState();
     navigateToSphere(sphereId);
-    setViewMode('sphere'); // Switch back to sphere view
+    setViewMode('sphere');
   };
 
   return (
-    <>
-      {/* Space background with stars */}
-      <Stars />
-      
-      {/* Lighting */}
-      <ambientLight intensity={0.2} />
-      <directionalLight position={[10, 10, 5]} intensity={0.8} color="#ffffff" />
-      <pointLight position={[0, 0, 0]} intensity={3} color="#FFD700" />
-      
-      {/* Celestial bodies */}
-      {celestialBodies.map((body, index) => (
-        <CelestialBody
-          key={body.thought.id}
-          thought={body.thought}
-          position={body.position}
-          size={body.size}
-          isSun={body.isSun}
-          orbitRadius={body.orbitRadius}
-          orbitSpeed={body.orbitSpeed}
-          onClick={() => handleSphereClick(body.thought.sphereId!)}
-        />
-      ))}
-      
-      {/* Camera controls */}
-      <OrbitControls 
-        enablePan={true}
-        enableZoom={true}
-        enableRotate={true}
-        minDistance={8}
-        maxDistance={50}
-        target={[0, 0, 0]}
-      />
-    </>
-  );
-};
-
-// Stars background component
-const Stars: React.FC = () => {
-  const starsRef = useRef<THREE.Points>(null);
-  
-  const starsGeometry = useMemo(() => {
-    const geometry = new THREE.BufferGeometry();
-    const starCount = 2000;
-    const positions = new Float32Array(starCount * 3);
-    
-    for (let i = 0; i < starCount * 3; i += 3) {
-      positions[i] = (Math.random() - 0.5) * 100;     // x
-      positions[i + 1] = (Math.random() - 0.5) * 100; // y
-      positions[i + 2] = (Math.random() - 0.5) * 100; // z
-    }
-    
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    return geometry;
-  }, []);
-  
-  useFrame(() => {
-    if (starsRef.current) {
-      starsRef.current.rotation.y += 0.0005; // Very slow star field rotation
-    }
-  });
-
-  return (
-    <points ref={starsRef} geometry={starsGeometry}>
-      <pointsMaterial
-        size={0.1}
-        color="#ffffff"
-        transparent
-        opacity={0.8}
-        sizeAttenuation={true}
-      />
-    </points>
-  );
-};
-
-// Main Galaxy component
-export const Galaxy: React.FC = () => {
-  return (
-    <div className="w-full h-full">
-      <Canvas
-        camera={{
-          position: [0, 20, 25],
-          fov: 60,
-          near: 0.1,
-          far: 1000
-        }}
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: "high-performance"
-        }}
-        style={{ 
-          width: '100%', 
-          height: '100%',
-          background: 'radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0B1426 100%)'
-        }}
-      >
-        <SolarSystem />
-      </Canvas>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-4xl font-bold text-white text-center mb-12">
+          Galaxy Shelf
+        </h1>
+        
+        {spheres.length === 0 ? (
+          <div className="text-center text-gray-400 text-xl">
+            No spheres stored yet. Create some thoughts first!
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {spheres.map((sphere) => (
+              <div
+                key={sphere.sphereId}
+                onClick={() => handleSphereClick(sphere.sphereId!)}
+                className="bg-white/10 backdrop-blur-md rounded-lg p-6 cursor-pointer hover:bg-white/20 transition-all duration-300 border border-white/20 hover:border-white/40 group"
+              >
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-2xl font-bold group-hover:scale-110 transition-transform duration-300">
+                    {sphere.title?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                  <h3 className="text-lg font-semibold text-white mb-2">
+                    {sphere.title || 'Untitled Sphere'}
+                  </h3>
+                  <p className="text-gray-300 text-sm">
+                    Click to edit this sphere
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
+
+export default Galaxy;

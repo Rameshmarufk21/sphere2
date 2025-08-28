@@ -377,32 +377,6 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
         </Html>
       )}
       
-      {/* Back to Galaxy button when viewing a sphere */}
-      {currentSphereId && (
-        <Html fullscreen style={{ pointerEvents: 'none' }}>
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '40px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              color: '#94a3b8',
-              fontWeight: 600,
-              cursor: 'pointer',
-              userSelect: 'none',
-              textShadow: 'none',
-              pointerEvents: 'auto'
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              useThoughts.getState().setViewMode('galaxy');
-            }}
-          >
-            ← Back to Galaxy
-          </div>
-        </Html>
-      )}
-      
       {/* Render current level thoughts */}
       {currentThoughts.map((thought, index) => (
         <ThoughtText key={thought.id} thought={thought} index={index} totalThoughts={currentThoughts.length} />

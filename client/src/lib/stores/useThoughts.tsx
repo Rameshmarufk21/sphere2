@@ -20,6 +20,7 @@ export interface Thought {
   isMainSphere?: boolean; // True for the main sphere, false for sub-spheres
   sphereId?: string; // ID of the sphere this thought belongs to
   thoughtType?: 'sphere' | 'thought'; // Whether this creates a sphere or is just a thought
+  isComplete?: boolean; // Flag to indicate if a sphere has been completed
 }
 
 interface ThoughtsState {
@@ -119,75 +120,50 @@ export const useThoughts = create<ThoughtsState>()(
       const words = text.trim().split(' ');
       const title = words[0] || text.trim();
       
-      // Determine if this thought creates a new sphere
-      const isFirstThought = state.thoughts.length === 0;
-      const isSphereThought = isFirstThought || text.length > 30; // Higher threshold for sphere creation
-      
-      let newThought: Thought;
-      
-      if (isFirstThought) {
-        // First thought becomes the main sphere
-        newThought = {
-          id: Math.random().toString(36).substr(2, 9),
-          text: text.trim(),
-          title,
-          position: new THREE.Vector3(0, 0, 0),
-          rotation: new THREE.Euler(0, 0, 0),
-          createdAt: new Date(),
-          parentId: undefined,
-          mode: 'sphere',
-          attachments,
-          isMainSphere: true,
-          sphereId: Math.random().toString(36).substr(2, 9),
-          thoughtType: 'sphere'
-        };
+      // If no sphereId provided, this is a new sphere
+      if (!sphereId) {
+        // Save current sphere to Galaxy if it exists
+        if (state.currentSphereId && state.thoughts.some(t => t.sphereId === state.currentSphereId)) {
+          // Mark current sphere as complete (for Galaxy storage)
+          set((prevState) => ({
+            thoughts: prevState.thoughts.map(t => 
+              t.sphereId === state.currentSphereId 
+                ? { ...t, isComplete: true }
+                : t
+            )
+          }));
+        }
         
-        // Set this as the current sphere
-        set({ currentSphereId: newThought.sphereId });
-      } else if (isSphereThought) {
-        // Long thoughts become new spheres (subspheres)
-        const { position, rotation } = state.generateThoughtPosition();
-        newThought = {
-          id: Math.random().toString(36).substr(2, 9),
-          text: text.trim(),
-          title,
-          position,
-          rotation,
-          createdAt: new Date(),
-          parentId: sphereId || state.currentSphereId || state.thoughts.find(t => t.isMainSphere)?.sphereId,
-          mode: 'sphere',
-          attachments,
-          isMainSphere: false,
-          sphereId: Math.random().toString(36).substr(2, 9),
-          thoughtType: 'sphere'
-        };
-      } else {
-        // Regular thoughts within a sphere
-        const { position, rotation } = state.generateThoughtPosition();
-        const targetSphereId = sphereId || state.currentSphereId || state.thoughts.find(t => t.isMainSphere)?.sphereId;
-        
-        newThought = {
-          id: Math.random().toString(36).substr(2, 9),
-          text: text.trim(),
-          title,
-          position,
-          rotation,
-          createdAt: new Date(),
-          parentId: targetSphereId,
-          mode: 'sphere',
-          attachments,
-          isMainSphere: false,
-          sphereId: targetSphereId,
-          thoughtType: 'thought'
-        };
+        // Create new sphere ID
+        const newSphereId = Math.random().toString(36).substr(2, 9);
+        set({ currentSphereId: newSphereId });
+        sphereId = newSphereId;
       }
+      
+      // Create the thought
+      const { position, rotation } = state.generateThoughtPosition();
+      const newThought: Thought = {
+        id: Math.random().toString(36).substr(2, 9),
+        text: text.trim(),
+        title,
+        position,
+        rotation,
+        createdAt: new Date(),
+        parentId: sphereId,
+        mode: 'sphere',
+        attachments,
+        isMainSphere: false,
+        sphereId: sphereId,
+        thoughtType: 'thought',
+        isComplete: false
+      };
       
       set((prevState) => ({
         thoughts: [...prevState.thoughts, newThought],
         isInputMode: false
       }));
       
-      console.log('Added thought:', newThought);
+      console.log('Added thought to sphere:', sphereId, newThought);
     },
     
     removeThought: (id: string) => {
@@ -259,12 +235,30 @@ export const useThoughts = create<ThoughtsState>()(
     
     getSphereThoughts: (sphereId: string) => {
       const state = get();
-      return state.thoughts.filter(t => t.sphereId === sphereId && t.thoughtType === 'thought');
+      return state.thoughts.filter(t => t.sphereId === sphereId);
     },
     
     getSpheres: () => {
       const state = get();
-      return state.thoughts.filter(t => t.thoughtType === 'sphere');
+      // Get unique sphere IDs that have been completed
+      const completedSphereIds = new Set();
+      state.thoughts.forEach(t => {
+        if (t.isComplete && t.sphereId) {
+          completedSphereIds.add(t.sphereId);
+        }
+      });
+      
+      // Return one thought from each completed sphere as a representative
+      const spheres: Thought[] = [];
+      completedSphereIds.forEach(sphereId => {
+        const sphereThoughts = state.thoughts.filter(t => t.sphereId === sphereId);
+        if (sphereThoughts.length > 0) {
+          // Use the first thought as the sphere representative
+          spheres.push(sphereThoughts[0]);
+        }
+      });
+      
+      return spheres;
     },
     
     getMainSphereTitle: () => {
