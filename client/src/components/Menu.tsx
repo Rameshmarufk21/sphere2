@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useThoughts } from '@/lib/stores/useThoughts';
 
 interface MenuProps {
-  currentView: 'sphere' | 'list' | any;
-  onViewChange: (view: 'sphere' | 'list') => void;
+  currentView: 'sphere' | 'list' | 'galaxy';
+  onViewChange: (view: 'sphere' | 'list' | 'galaxy') => void;
+  onNewThought: () => void;
 }
 
 const isDaytime = () => {
@@ -11,7 +12,7 @@ const isDaytime = () => {
   return hour >= 6 && hour < 18;
 };
 
-export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
+export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange, onNewThought }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDay] = useState(isDaytime());
 
@@ -67,6 +68,30 @@ export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
             boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
           }}
         >
+          {/* New Thought Button */}
+          <button
+            onClick={() => {
+              onNewThought();
+              setIsOpen(false);
+            }}
+            className="w-full px-4 py-3 text-left transition-colors duration-200 flex items-center border-b border-gray-200"
+            style={{
+              color: menuColor,
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = hoverColor;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Thought
+          </button>
+          
           <button
             onClick={() => {
               onViewChange('sphere');
@@ -93,7 +118,34 @@ export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
               <circle cx="12" cy="12" r="6" strokeWidth={1} />
               <circle cx="12" cy="12" r="2" strokeWidth={1} />
             </svg>
-            Sphere View
+            Galaxy
+          </button>
+          
+          <button
+            onClick={() => {
+              onViewChange('galaxy');
+              setIsOpen(false);
+            }}
+            className="w-full px-4 py-3 text-left transition-colors duration-200 flex items-center"
+            style={{
+              color: menuColor,
+              backgroundColor: currentView === 'galaxy' ? hoverColor : 'transparent',
+            }}
+            onMouseEnter={(e) => {
+              if (currentView !== 'galaxy') {
+                e.currentTarget.style.backgroundColor = hoverColor;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentView !== 'galaxy') {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m7-7v18" />
+            </svg>
+            Galaxy
           </button>
           
           <button

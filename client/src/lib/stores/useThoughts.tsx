@@ -24,7 +24,7 @@ interface ThoughtsState {
   sphereCenter: THREE.Vector3;
   targetRotation: { x: number; y: number } | null;
   currentParentId: string | null;
-  viewMode: 'sphere' | 'list';
+  viewMode: 'sphere' | 'list' | 'galaxy';
   
   // Actions
   addThought: (text: string, attachments?: any) => void;
@@ -36,7 +36,7 @@ interface ThoughtsState {
   clearTargetRotation: () => void;
   navigateToThought: (thoughtId: string) => void;
   navigateBack: () => void;
-  setViewMode: (mode: 'sphere' | 'list') => void;
+  setViewMode: (mode: 'sphere' | 'list' | 'galaxy') => void;
   generateThoughtPosition: () => { position: THREE.Vector3; rotation: THREE.Euler };
   getMainSphereTitle: () => string | null;
 }
@@ -194,7 +194,7 @@ export const useThoughts = create<ThoughtsState>()(
       set({ currentParentId: currentThought?.parentId || null });
     },
 
-    setViewMode: (mode: 'sphere' | 'list') => {
+    setViewMode: (mode: 'sphere' | 'list' | 'galaxy') => {
       set({ viewMode: mode });
     },
 

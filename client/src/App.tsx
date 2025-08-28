@@ -3,6 +3,7 @@ import { ThoughtSphere } from '@/components/ThoughtSphere';
 import { InputOverlay } from '@/components/InputOverlay';
 import { Menu } from '@/components/Menu';
 import { ListView } from '@/components/ListView';
+import { Galaxy } from '@/components/Galaxy';
 import { useThoughts } from '@/lib/stores/useThoughts';
 import '@fontsource/inter';
 
@@ -15,7 +16,7 @@ const isDaytime = () => {
 function App() {
   const { setInputMode, isInputMode } = useThoughts();
   const [isDay, setIsDay] = useState(isDaytime());
-  const [currentView, setCurrentView] = useState<'sphere' | 'list'>('sphere');
+  const [currentView, setCurrentView] = useState<'sphere' | 'list' | 'galaxy'>('sphere');
   const [webglSupported, setWebglSupported] = useState(true);
   
   // Check time every minute
@@ -51,6 +52,11 @@ function App() {
   // Handle closing input overlay
   const handleCloseInput = useCallback(() => {
     setInputMode(false);
+  }, [setInputMode]);
+
+  // Handle new thought creation
+  const handleNewThought = useCallback(() => {
+    setInputMode(true);
   }, [setInputMode]);
 
   const backgroundColor = isDay ? "#f8fafc" : "#1e293b"; // Light grey for day, dark for night
@@ -98,13 +104,16 @@ function App() {
     }}>
       {/* Menu */}
       <Menu 
-        currentView={currentView as any} 
-        onViewChange={(v:any)=>setCurrentView(v)} 
+        currentView={currentView} 
+        onViewChange={setCurrentView}
+        onNewThought={handleNewThought}
       />
       
       {/* Main Content */}
       {currentView === 'sphere' ? (
         <ThoughtSphere onSphereClick={handleSphereClick} />
+      ) : currentView === 'galaxy' ? (
+        <Galaxy />
       ) : (
         <ListView />
       )}
@@ -113,7 +122,7 @@ function App() {
       <InputOverlay 
         isVisible={isInputMode}
         onClose={handleCloseInput}
-        currentView={currentView as any}
+        currentView={currentView}
       />
     </div>
   );

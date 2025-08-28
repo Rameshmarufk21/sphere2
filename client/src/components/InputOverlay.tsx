@@ -4,7 +4,7 @@ import { useThoughts } from '@/lib/stores/useThoughts';
 interface InputOverlayProps {
   isVisible: boolean;
   onClose: () => void;
-  currentView?: 'sphere' | 'list' | 'earth' | 'earthTest';
+  currentView?: 'sphere' | 'list' | 'galaxy';
 }
 
 export const InputOverlay: React.FC<InputOverlayProps> = ({ isVisible, onClose, currentView = 'sphere' }) => {
