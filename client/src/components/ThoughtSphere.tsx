@@ -245,7 +245,7 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
   // Filter thoughts based on current navigation level and mode
   const currentThoughts = currentParentId 
     ? thoughts.filter(t => t.parentId === currentParentId && t.mode === 'sphere')
-    : thoughts.filter(t => !t.parentId && t.mode === 'sphere');
+    : thoughts.filter(t => !t.parentId && t.mode === 'sphere').slice(1); // Skip first thought (center title)
 
   // Get center thought if we're in a nested view
   const centerThought = currentParentId 

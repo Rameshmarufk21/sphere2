@@ -104,23 +104,44 @@ export const useThoughts = create<ThoughtsState>()(
     
     addThought: (text: string, attachments?: any) => {
       const state = get();
-      const { position, rotation } = state.generateThoughtPosition();
       
       // Extract first word as title
       const words = text.trim().split(' ');
       const title = words[0] || text.trim();
       
-      const newThought: Thought = {
-        id: Math.random().toString(36).substr(2, 9),
-        text: text.trim(),
-        title,
-        position,
-        rotation,
-        createdAt: new Date(),
-        parentId: state.currentParentId || undefined,
-        mode: 'sphere',
-        attachments,
-      };
+      // Check if this is the first thought (main sphere title)
+      const isFirstThought = state.thoughts.length === 0;
+      
+      let newThought: Thought;
+      
+      if (isFirstThought) {
+        // First thought becomes the center title - no position needed
+        newThought = {
+          id: Math.random().toString(36).substr(2, 9),
+          text: text.trim(),
+          title,
+          position: new THREE.Vector3(0, 0, 0), // Center position
+          rotation: new THREE.Euler(0, 0, 0), // No rotation
+          createdAt: new Date(),
+          parentId: undefined,
+          mode: 'sphere',
+          attachments,
+        };
+      } else {
+        // Subsequent thoughts get positioned on the sphere surface
+        const { position, rotation } = state.generateThoughtPosition();
+        newThought = {
+          id: Math.random().toString(36).substr(2, 9),
+          text: text.trim(),
+          title,
+          position,
+          rotation,
+          createdAt: new Date(),
+          parentId: state.currentParentId || undefined,
+          mode: 'sphere',
+          attachments,
+        };
+      }
       
       set((prevState) => ({
         thoughts: [...prevState.thoughts, newThought],
