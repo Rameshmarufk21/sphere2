@@ -69,7 +69,10 @@ export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
         >
           {/* New Thought Button */}
           <button
-            onClick={() => onViewChange('sphere')}
+            onClick={() => {
+              useThoughts.getState().createFreshSphere();
+              onViewChange('sphere');
+            }}
             className={`w-full flex items-center px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-lg ${
               currentView === 'sphere' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'
             }`}

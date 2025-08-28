@@ -7,8 +7,10 @@ const Galaxy: React.FC = () => {
 
   const handleSphereClick = (sphereId: string) => {
     console.log('Navigating to sphere:', sphereId);
+    const { navigateToSphere, setViewMode } = useThoughts.getState();
     navigateToSphere(sphereId);
     setViewMode('sphere');
+    console.log('Navigation complete - currentSphereId should be:', sphereId);
   };
 
   return (

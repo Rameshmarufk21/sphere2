@@ -231,8 +231,8 @@ const CameraController: React.FC = () => {
       enablePan={true}
       enableZoom={true}
       enableRotate={true}
-      minDistance={3}
-      maxDistance={15}
+      minDistance={2}
+      maxDistance={20}
       target={[0, 0, 0]}
     />
   );
@@ -255,17 +255,18 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
     ? getSpheres().find(s => s.sphereId === currentSphereId)
     : getSpheres().find(s => s.isMainSphere);
     
-  console.log('Current sphere ID:', currentSphereId);
+  console.log('ThoughtSphere render - currentSphereId:', currentSphereId);
   console.log('Current sphere:', currentSphere);
-  console.log('Current thoughts:', currentThoughts);
-
+  console.log('Current thoughts count:', currentThoughts.length);
+  console.log('All spheres:', getSpheres());
+  
   // Get center thought if we're in a nested view
   const centerThought = currentParentId 
     ? thoughts.find(t => t.id === currentParentId)
     : null;
   
   // Get current sphere title for display in center
-  const sphereTitle = currentSphere?.title || 'Enter your first thought';
+  const sphereTitle = currentSphere?.title || (currentSphereId ? 'New Sphere' : 'Enter your first thought');
   const [isDay, setIsDay] = useState(isDaytime());
   
   // Check time every minute
@@ -405,7 +406,7 @@ export const ThoughtSphere: React.FC<{ onSphereClick: (event: any) => void }> = 
   return (
     <Canvas
       camera={{
-        position: [0, 0, 8],
+        position: [0, 0, 6],
         fov: 45,
         near: 0.1,
         far: 1000
