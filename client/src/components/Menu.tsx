@@ -94,21 +94,21 @@ export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange, onNewThou
           
           <button
             onClick={() => {
-              onViewChange('sphere');
+              onViewChange('galaxy');
               setIsOpen(false);
             }}
             className="w-full px-4 py-3 text-left transition-colors duration-200 flex items-center"
             style={{
               color: menuColor,
-              backgroundColor: currentView === 'sphere' ? hoverColor : 'transparent',
+              backgroundColor: currentView === 'galaxy' ? hoverColor : 'transparent',
             }}
             onMouseEnter={(e) => {
-              if (currentView !== 'sphere') {
+              if (currentView !== 'galaxy') {
                 e.currentTarget.style.backgroundColor = hoverColor;
               }
             }}
             onMouseLeave={(e) => {
-              if (currentView !== 'sphere') {
+              if (currentView !== 'galaxy') {
                 e.currentTarget.style.backgroundColor = 'transparent';
               }
             }}
