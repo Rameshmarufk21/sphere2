@@ -1,12 +1,10 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { ThoughtSphere } from '@/components/ThoughtSphere';
-import { EarthMode } from '@/components/EarthMode';
 import { InputOverlay } from '@/components/InputOverlay';
 import { Menu } from '@/components/Menu';
 import { ListView } from '@/components/ListView';
 import { useThoughts } from '@/lib/stores/useThoughts';
 import '@fontsource/inter';
-import { NASAEarthTest } from '@/components/NASAEarthTest';
 
 // Helper function to determine if it's day or night
 const isDaytime = () => {
@@ -17,9 +15,8 @@ const isDaytime = () => {
 function App() {
   const { setInputMode, isInputMode } = useThoughts();
   const [isDay, setIsDay] = useState(isDaytime());
-  const [currentView, setCurrentView] = useState<'sphere' | 'list' | 'earth' | 'earthTest'>('sphere');
+  const [currentView, setCurrentView] = useState<'sphere' | 'list'>('sphere');
   const [webglSupported, setWebglSupported] = useState(true);
-  const [forceCSSMode, setForceCSSMode] = useState(false); // Use WebGL for true 3D sphere
   
   // Check time every minute
   useEffect(() => {
@@ -50,8 +47,6 @@ function App() {
     console.log('Sphere clicked, setting input mode to true');
     setInputMode(true);
   }, [setInputMode]);
-
-
 
   // Handle closing input overlay
   const handleCloseInput = useCallback(() => {
@@ -87,7 +82,6 @@ function App() {
 
   console.log('App rendering with:', {
     webglSupported,
-    forceCSSMode,
     currentView,
     isInputMode
   });
@@ -104,28 +98,14 @@ function App() {
     }}>
       {/* Menu */}
       <Menu 
-        currentView={currentView} 
-        onViewChange={setCurrentView} 
-        forceCSSMode={forceCSSMode}
-        onToggleCSSMode={() => setForceCSSMode(!forceCSSMode)}
+        currentView={currentView as any} 
+        onViewChange={(v:any)=>setCurrentView(v)} 
       />
       
       {/* Main Content */}
       {currentView === 'sphere' ? (
-        <>
-          {/* Main 3D Scene */}
-          <ThoughtSphere onSphereClick={handleSphereClick} forceCSSMode={forceCSSMode} />
-        </>
-                   ) : currentView === 'earth' ? (
-               <>
-                 {/* Earth Mode 3D Scene */}
-                 <EarthMode />
-               </>
-             ) : currentView === 'earthTest' ? (
-               <>
-                 <NASAEarthTest />
-               </>
-             ) : (
+        <ThoughtSphere onSphereClick={handleSphereClick} />
+      ) : (
         <ListView />
       )}
       
@@ -133,7 +113,7 @@ function App() {
       <InputOverlay 
         isVisible={isInputMode}
         onClose={handleCloseInput}
-        currentView={currentView}
+        currentView={currentView as any}
       />
     </div>
   );
