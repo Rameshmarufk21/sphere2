@@ -248,7 +248,7 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
   // Get thoughts for current sphere or main sphere if none selected
   const currentThoughts = currentSphereId 
     ? getSphereThoughts(currentSphereId)
-    : thoughts.filter(t => t.thoughtType === 'thought' && (t.sphereId === currentSphereId || t.isMainSphere));
+    : thoughts.filter(t => t.thoughtType === 'thought' && (t.sphereId === currentSphereId || t.isMainSphere || !t.sphereId));
   
   // Get current sphere info
   const currentSphere = currentSphereId 

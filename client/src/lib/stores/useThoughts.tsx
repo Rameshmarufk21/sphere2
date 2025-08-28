@@ -171,7 +171,7 @@ export const useThoughts = create<ThoughtsState>()(
           mode: 'sphere',
           attachments,
           isMainSphere: false,
-          sphereId: sphereId || state.currentSphereId || undefined,
+          sphereId: sphereId || state.currentSphereId || state.thoughts.find(t => t.isMainSphere)?.sphereId,
           thoughtType: 'thought'
         };
       }
