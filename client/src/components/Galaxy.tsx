@@ -139,6 +139,7 @@ const SolarSystem: React.FC = () => {
   // Handle sphere click - navigate to that sphere's thought page
   const handleSphereClick = (sphereId: string) => {
     console.log('Navigating to sphere:', sphereId);
+    const { navigateToSphere, setViewMode } = useThoughts.getState();
     navigateToSphere(sphereId);
     setViewMode('sphere'); // Switch back to sphere view
   };

@@ -254,6 +254,10 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
   const currentSphere = currentSphereId 
     ? getSpheres().find(s => s.sphereId === currentSphereId)
     : getSpheres().find(s => s.isMainSphere);
+    
+  console.log('Current sphere ID:', currentSphereId);
+  console.log('Current sphere:', currentSphere);
+  console.log('Current thoughts:', currentThoughts);
 
   // Get center thought if we're in a nested view
   const centerThought = currentParentId 

@@ -47,6 +47,7 @@ interface ThoughtsState {
   getMainSphereTitle: () => string | null;
   getSphereThoughts: (sphereId: string) => Thought[]; // Get thoughts for a specific sphere
   getSpheres: () => Thought[]; // Get all sphere-creating thoughts
+  resetToMainSphere: () => void;
 }
 
 // Enhanced spherical distribution similar to word cloud reference
@@ -120,7 +121,7 @@ export const useThoughts = create<ThoughtsState>()(
       
       // Determine if this thought creates a new sphere
       const isFirstThought = state.thoughts.length === 0;
-      const isSphereThought = isFirstThought || text.length > 25; // Longer threshold for sphere creation
+      const isSphereThought = isFirstThought || text.length > 30; // Higher threshold for sphere creation
       
       let newThought: Thought;
       
@@ -140,6 +141,9 @@ export const useThoughts = create<ThoughtsState>()(
           sphereId: Math.random().toString(36).substr(2, 9),
           thoughtType: 'sphere'
         };
+        
+        // Set this as the current sphere
+        set({ currentSphereId: newThought.sphereId });
       } else if (isSphereThought) {
         // Long thoughts become new spheres (subspheres)
         const { position, rotation } = state.generateThoughtPosition();
@@ -150,7 +154,7 @@ export const useThoughts = create<ThoughtsState>()(
           position,
           rotation,
           createdAt: new Date(),
-          parentId: sphereId || state.currentSphereId || undefined,
+          parentId: sphereId || state.currentSphereId || state.thoughts.find(t => t.isMainSphere)?.sphereId,
           mode: 'sphere',
           attachments,
           isMainSphere: false,
@@ -160,6 +164,8 @@ export const useThoughts = create<ThoughtsState>()(
       } else {
         // Regular thoughts within a sphere
         const { position, rotation } = state.generateThoughtPosition();
+        const targetSphereId = sphereId || state.currentSphereId || state.thoughts.find(t => t.isMainSphere)?.sphereId;
+        
         newThought = {
           id: Math.random().toString(36).substr(2, 9),
           text: text.trim(),
@@ -167,11 +173,11 @@ export const useThoughts = create<ThoughtsState>()(
           position,
           rotation,
           createdAt: new Date(),
-          parentId: sphereId || state.currentSphereId || undefined,
+          parentId: targetSphereId,
           mode: 'sphere',
           attachments,
           isMainSphere: false,
-          sphereId: sphereId || state.currentSphereId || state.thoughts.find(t => t.isMainSphere)?.sphereId,
+          sphereId: targetSphereId,
           thoughtType: 'thought'
         };
       }
@@ -180,6 +186,8 @@ export const useThoughts = create<ThoughtsState>()(
         thoughts: [...prevState.thoughts, newThought],
         isInputMode: false
       }));
+      
+      console.log('Added thought:', newThought);
     },
     
     removeThought: (id: string) => {
@@ -264,6 +272,14 @@ export const useThoughts = create<ThoughtsState>()(
       // Get the first thought in sphere mode (main sphere) to use as title
       const mainSphereThoughts = state.thoughts.filter(t => !t.parentId && t.mode === 'sphere');
       return mainSphereThoughts.length > 0 ? mainSphereThoughts[0].title : null;
+    },
+    
+    resetToMainSphere: () => {
+      const state = get();
+      const mainSphere = state.thoughts.find(t => t.isMainSphere);
+      if (mainSphere) {
+        set({ currentSphereId: mainSphere.sphereId });
+      }
     }
   }))
 );
