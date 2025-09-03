@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useThoughts } from '@/lib/stores/useThoughts';
 
 interface MenuProps {
-  currentView: 'sphere' | 'list' | 'galaxy';
-  onViewChange: (view: 'sphere' | 'list' | 'galaxy') => void;
+  currentView: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2';
+  onViewChange: (view: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2') => void;
 }
 
 const isDaytime = () => {
@@ -14,23 +14,43 @@ const isDaytime = () => {
 export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDay] = useState(isDaytime());
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const menuColor = isDay ? '#374151' : '#e5e7eb';
-  const bgColor = isDay ? 'rgba(248, 250, 252, 0.3)' : 'rgba(30, 41, 59, 0.3)';
-  const hoverColor = isDay ? 'rgba(243, 244, 246, 0.5)' : 'rgba(71, 85, 105, 0.5)';
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const menuColor = isDay ? '#1f2937' : '#f1f5f9';
+  const bgColor = isDay ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 23, 42, 0.95)';
+  const hoverColor = isDay ? 'rgba(243, 244, 246, 0.8)' : 'rgba(255, 255, 255, 0.1)';
+  const borderColor = isDay ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.2)';
 
   return (
-    <div className="fixed top-4 left-4 z-50">
+    <div className="fixed top-4 left-4 z-50" ref={menuRef}>
       {/* Hamburger Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-3 rounded-lg transition-all duration-200 hover:scale-105"
+        className="p-3 rounded-xl transition-all duration-300 hover:scale-105"
         style={{
           background: bgColor,
-          backdropFilter: 'blur(5px)',
-          WebkitBackdropFilter: 'blur(5px)',
-          border: `1px solid ${isDay ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)'}`,
-          boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: `1px solid ${borderColor}`,
+          boxShadow: isDay ? '0 4px 20px rgba(0,0,0,0.1)' : '0 4px 20px rgba(0,0,0,0.3)',
+          fontFamily: 'Inter, system-ui, sans-serif'
         }}
       >
         <div className="flex flex-col justify-center items-center w-5 h-5">
@@ -58,13 +78,14 @@ export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
       {/* Menu Dropdown */}
       {isOpen && (
         <div
-          className="absolute top-16 left-0 min-w-48 rounded-lg overflow-hidden"
+          className="absolute top-16 left-0 min-w-52 rounded-xl overflow-hidden"
           style={{
-            background: isDay ? 'rgba(248, 250, 252, 0.85)' : 'rgba(30, 41, 59, 0.85)',
-            backdropFilter: 'blur(15px)',
-            WebkitBackdropFilter: 'blur(15px)',
-            border: `1px solid ${isDay ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
-            boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+            background: bgColor,
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: `1px solid ${borderColor}`,
+            boxShadow: isDay ? '0 8px 32px rgba(0,0,0,0.12)' : '0 8px 32px rgba(0,0,0,0.4)',
+            fontFamily: 'Inter, system-ui, sans-serif'
           }}
         >
           {/* New Thought Button */}
@@ -73,9 +94,22 @@ export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
               useThoughts.getState().createFreshSphere();
               onViewChange('sphere');
             }}
-            className={`w-full flex items-center px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors rounded-lg ${
-              currentView === 'sphere' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' : 'text-gray-700 dark:text-gray-300'
-            }`}
+            className="w-full px-5 py-3.5 text-left transition-all duration-200 flex items-center font-medium"
+            style={{
+              color: menuColor,
+              backgroundColor: currentView === 'sphere' ? hoverColor : 'transparent',
+              fontSize: '0.95rem'
+            }}
+            onMouseEnter={(e) => {
+              if (currentView !== 'sphere') {
+                e.currentTarget.style.backgroundColor = hoverColor;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentView !== 'sphere') {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -88,10 +122,11 @@ export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
               onViewChange('galaxy');
               setIsOpen(false);
             }}
-            className="w-full px-4 py-3 text-left transition-colors duration-200 flex items-center"
+            className="w-full px-5 py-3.5 text-left transition-all duration-200 flex items-center font-medium"
             style={{
               color: menuColor,
               backgroundColor: currentView === 'galaxy' ? hoverColor : 'transparent',
+              fontSize: '0.95rem'
             }}
             onMouseEnter={(e) => {
               if (currentView !== 'galaxy') {
@@ -119,10 +154,11 @@ export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
               onViewChange('list');
               setIsOpen(false);
             }}
-            className="w-full px-4 py-3 text-left transition-colors duration-200 flex items-center"
+            className="w-full px-5 py-3.5 text-left transition-all duration-200 flex items-center font-medium"
             style={{
               color: menuColor,
               backgroundColor: currentView === 'list' ? hoverColor : 'transparent',
+              fontSize: '0.95rem'
             }}
             onMouseEnter={(e) => {
               if (currentView !== 'list') {
@@ -139,6 +175,62 @@ export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
             List View
+          </button>
+
+          <button
+            onClick={() => {
+              onViewChange('test-x');
+              setIsOpen(false);
+            }}
+            className="w-full px-5 py-3.5 text-left transition-all duration-200 flex items-center font-medium"
+            style={{
+              color: menuColor,
+              backgroundColor: currentView === 'test-x' ? hoverColor : 'transparent',
+              fontSize: '0.95rem'
+            }}
+            onMouseEnter={(e) => {
+              if (currentView !== 'test-x') {
+                e.currentTarget.style.backgroundColor = hoverColor;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentView !== 'test-x') {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            🧪 Test X
+          </button>
+
+          <button
+            onClick={() => {
+              onViewChange('test-2');
+              setIsOpen(false);
+            }}
+            className="w-full px-5 py-3.5 text-left transition-all duration-200 flex items-center font-medium"
+            style={{
+              color: menuColor,
+              backgroundColor: currentView === 'test-2' ? hoverColor : 'transparent',
+              fontSize: '0.95rem'
+            }}
+            onMouseEnter={(e) => {
+              if (currentView !== 'test-2') {
+                e.currentTarget.style.backgroundColor = hoverColor;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentView !== 'test-2') {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            🧪 Test 2
           </button>
         </div>
       )}

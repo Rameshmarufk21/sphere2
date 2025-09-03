@@ -155,8 +155,8 @@ const ThoughtText: React.FC<{ thought: any; index: number; totalThoughts: number
           anchorX="center"
           anchorY="middle"
           color={textColor}
-          outlineWidth={fontSize * 0.015}
-          outlineColor={isHovered ? "#ffffff" : (isDay ? "#ffffff" : "#000000")}
+          outlineWidth={0}
+          outlineColor="transparent"
           fillOpacity={0.95}
           renderOrder={1000}
           onPointerEnter={() => setIsHovered(true)}
@@ -242,10 +242,14 @@ const CameraController: React.FC = () => {
 
 // Main scene component
 const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClick }) => {
-  const { thoughts, currentParentId, navigateBack } = useThoughts();
-  
-  // Filter thoughts based on current sphere
-  const { currentSphereId, getSphereThoughts, getSpheres } = useThoughts();
+  const { 
+    thoughts, 
+    currentParentId, 
+    navigateBack, 
+    currentSphereId, 
+    getSphereThoughts, 
+    getSpheres 
+  } = useThoughts();
   
   // Get thoughts for current sphere or main sphere if none selected
   const currentThoughts = currentSphereId 
@@ -336,8 +340,8 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
             anchorX="center"
             anchorY="middle"
             color="#ef4444"
-            outlineWidth={0.02}
-            outlineColor="#ffffff"
+            outlineWidth={0}
+            outlineColor="transparent"
             fillOpacity={0.98}
             renderOrder={2000}
           >
@@ -357,8 +361,8 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
             anchorX="center"
             anchorY="middle"
             color="#ef4444"
-            outlineWidth={0.01}
-            outlineColor="#ffffff"
+            outlineWidth={0}
+            outlineColor="transparent"
             fillOpacity={0.98}
             renderOrder={2000}
           >
@@ -406,6 +410,7 @@ const Scene: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClic
 
 // Main ThoughtSphere component (WebGL only)
 export const ThoughtSphere: React.FC<{ onSphereClick: (event: any) => void }> = ({ onSphereClick }) => {
+  const { previousViewMode, backToPreviousView } = useThoughts();
   const [isDay, setIsDay] = useState(isDaytime());
   
   // Check time every minute
@@ -417,28 +422,66 @@ export const ThoughtSphere: React.FC<{ onSphereClick: (event: any) => void }> = 
   }, []);
 
   const backgroundColor = isDay ? "#f8fafc" : "#1e293b";
+  
+  // Check if we came from TestX (galaxy mode)
+  const showBackToGalaxy = previousViewMode === 'test-x';
 
   return (
-    <Canvas
-      camera={{
-        position: [0, 0, 6],
-        fov: 45,
-        near: 0.1,
-        far: 1000
-      }}
-      gl={{
-        antialias: true,
-        alpha: true,
-        powerPreference: "high-performance"
-      }}
-      style={{ 
-        width: '100%', 
-        height: '100%',
-        background: 'transparent'
-      }}
-    >
-      <color attach="background" args={[backgroundColor]} />
-      <Scene onSphereClick={onSphereClick} />
-    </Canvas>
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <Canvas
+        camera={{
+          position: [0, 0, 6],
+          fov: 45,
+          near: 0.1,
+          far: 1000
+        }}
+        gl={{
+          antialias: true,
+          alpha: true,
+          powerPreference: "high-performance"
+        }}
+        style={{ 
+          width: '100%', 
+          height: '100%',
+          background: 'transparent'
+        }}
+      >
+        <color attach="background" args={[backgroundColor]} />
+        <Scene onSphereClick={onSphereClick} />
+      </Canvas>
+      
+      {/* Back to Galaxy Button - only show when coming from TestX */}
+      {showBackToGalaxy && (
+        <div style={{
+          position: 'absolute',
+          bottom: '80px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1000
+        }}>
+          <button
+            onClick={backToPreviousView}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              transition: 'color 0.2s ease'
+            }}
+            onMouseEnter={(e) => e.target.style.color = '#60a5fa'}
+            onMouseLeave={(e) => e.target.style.color = '#ffffff'}
+          >
+            ← Back to Galaxy
+          </button>
+        </div>
+      )}
+    </div>
   );
 };

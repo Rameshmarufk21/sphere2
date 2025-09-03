@@ -4,6 +4,8 @@ import { InputOverlay } from '@/components/InputOverlay';
 import { Menu } from '@/components/Menu';
 import { ListView } from '@/components/ListView';
 import Galaxy from '@/components/Galaxy';
+import TestX from '@/components/TestX';
+import Test2 from '@/components/Test2';
 import { useThoughts } from '@/lib/stores/useThoughts';
 import '@fontsource/inter';
 
@@ -14,9 +16,8 @@ const isDaytime = () => {
 };
 
 function App() {
-  const { setInputMode, isInputMode } = useThoughts();
+  const { setInputMode, isInputMode, viewMode, setViewMode } = useThoughts();
   const [isDay, setIsDay] = useState(isDaytime());
-  const [currentView, setCurrentView] = useState<'sphere' | 'list' | 'galaxy'>('sphere');
   const [webglSupported, setWebglSupported] = useState(true);
   
   // Check time every minute
@@ -59,8 +60,8 @@ function App() {
     setInputMode(true);
   }, [setInputMode]);
 
-  const backgroundColor = isDay ? "#f8fafc" : "#1e293b"; // Light grey for day, dark for night
-  const textColor = isDay ? "#666" : "#94a3b8"; // Dark text for day, light for night
+  const backgroundColor = isDay ? "#f8fafc" : "#0f172a"; // Light grey for day, darker slate for night
+  const textColor = isDay ? "#1f2937" : "#f1f5f9"; // Better contrast colors
 
   // Show fallback if WebGL is not supported
   if (!webglSupported) {
@@ -76,11 +77,28 @@ function App() {
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <div style={{ textAlign: 'center', color: textColor }}>
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🌐</div>
-          <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>MindSphere</h1>
-          <p style={{ marginBottom: '2rem' }}>WebGL 3D rendering is not supported in your browser.</p>
-          <p>Please try using a modern browser with WebGL support.</p>
+        <div style={{ 
+          textAlign: 'center', 
+          color: textColor,
+          fontFamily: 'Inter, system-ui, sans-serif'
+        }}>
+          <div style={{ fontSize: '5rem', marginBottom: '2rem', opacity: 0.8 }}>🌐</div>
+          <h1 style={{ 
+            fontSize: '3rem', 
+            marginBottom: '1.5rem',
+            fontWeight: '700',
+            letterSpacing: '-0.02em'
+          }}>MindSphere</h1>
+          <p style={{ 
+            marginBottom: '1.5rem',
+            fontSize: '1.125rem',
+            opacity: 0.8,
+            fontWeight: '500'
+          }}>WebGL 3D rendering is not supported in your browser.</p>
+          <p style={{
+            fontSize: '1rem',
+            opacity: 0.7
+          }}>Please try using a modern browser with WebGL support.</p>
         </div>
       </div>
     );
@@ -88,7 +106,7 @@ function App() {
 
   console.log('App rendering with:', {
     webglSupported,
-    currentView,
+    viewMode,
     isInputMode
   });
 
@@ -99,20 +117,25 @@ function App() {
       position: 'relative', 
       overflow: 'hidden',
       background: backgroundColor,
-      cursor: isInputMode ? 'default' : (currentView === 'sphere' ? 'grab' : 'default'),
-      transition: 'background-color 0.5s ease'
+      cursor: isInputMode ? 'default' : (viewMode === 'sphere' ? 'grab' : 'default'),
+      transition: 'background-color 0.5s ease',
+      fontFamily: 'Inter, system-ui, sans-serif'
     }}>
       {/* Menu */}
       <Menu 
-        currentView={currentView} 
-        onViewChange={setCurrentView}
+        currentView={viewMode} 
+        onViewChange={setViewMode}
       />
       
       {/* Main Content */}
-      {currentView === 'sphere' ? (
+      {viewMode === 'sphere' ? (
         <ThoughtSphere onSphereClick={handleSphereClick} />
-      ) : currentView === 'galaxy' ? (
+      ) : viewMode === 'galaxy' ? (
         <Galaxy />
+      ) : viewMode === 'test-x' ? (
+        <TestX />
+      ) : viewMode === 'test-2' ? (
+        <Test2 />
       ) : (
         <ListView />
       )}
@@ -121,7 +144,7 @@ function App() {
       <InputOverlay 
         isVisible={isInputMode}
         onClose={handleCloseInput}
-        currentView={currentView}
+        currentView={viewMode}
       />
     </div>
   );

@@ -44,14 +44,18 @@ export const InputOverlay: React.FC<InputOverlayProps> = ({ isVisible, onClose, 
     e.preventDefault();
     if (inputValue.trim()) {
       const hasAttachments = attachments.images.length || attachments.links.length || attachments.files.length;
+      
+      // Capitalize first letter of input
+      const capitalizedInput = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
+      
       console.log('Adding thought:', {
-        text: inputValue,
+        text: capitalizedInput,
         mode: 'sphere',
         attachments: hasAttachments ? attachments : undefined
       });
       
       addThought(
-        inputValue, 
+        capitalizedInput, 
         hasAttachments ? attachments : undefined
         // Don't pass sphereId - this will create a fresh sphere
       );

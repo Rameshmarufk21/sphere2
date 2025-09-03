@@ -30,7 +30,8 @@ interface ThoughtsState {
   targetRotation: { x: number; y: number } | null;
   currentParentId: string | null;
   currentSphereId: string | null; // Current sphere being viewed
-  viewMode: 'sphere' | 'list' | 'galaxy';
+  viewMode: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2';
+  previousViewMode: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2' | null; // Track previous view for back navigation
   
   // Actions
   addThought: (text: string, attachments?: any, sphereId?: string) => void;
@@ -42,8 +43,10 @@ interface ThoughtsState {
   clearTargetRotation: () => void;
   navigateToThought: (thoughtId: string) => void;
   navigateBack: () => void;
-  setViewMode: (mode: 'sphere' | 'list' | 'galaxy') => void;
+  setViewMode: (mode: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2') => void;
   navigateToSphere: (sphereId: string) => void; // Navigate to a specific sphere
+  setPreviousViewMode: (mode: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2' | null) => void; // Set previous view mode
+  backToPreviousView: () => void; // Go back to previous view mode
   generateThoughtPosition: () => { position: THREE.Vector3; rotation: THREE.Euler };
   getMainSphereTitle: () => string | null;
   getSphereThoughts: (sphereId: string) => Thought[]; // Get thoughts for a specific sphere
@@ -114,6 +117,7 @@ export const useThoughts = create<ThoughtsState>()(
     currentParentId: null,
     currentSphereId: null,
     viewMode: 'sphere',
+    previousViewMode: null,
     
     addThought: (text: string, attachments?: any, sphereId?: string) => {
       const state = get();
@@ -173,42 +177,39 @@ export const useThoughts = create<ThoughtsState>()(
         const isFirstThoughtInFreshSphere = targetSphereId && !state.thoughts.some(t => t.thoughtType === 'sphere' && t.sphereId === targetSphereId);
         
         if (isFirstThoughtInFreshSphere) {
-          // Create the sphere structure first
-          const sphereThought: Thought = {
+          // This is the first thought in a fresh sphere - create ONLY the sphere structure
+          // Don't create a separate thought - the sphere structure IS the first thought
+          newThought = {
             id: Math.random().toString(36).substr(2, 9),
-            text: text.trim(),
-            title,
+            text: text.trim(), // The actual content becomes the sphere's text
+            title, // This will be the sphere title
             position: new THREE.Vector3(0, 0, 0),
             rotation: new THREE.Euler(0, 0, 0),
             createdAt: new Date(),
             parentId: undefined,
             mode: 'sphere',
-            attachments: undefined,
+            attachments,
             isMainSphere: false,
             sphereId: targetSphereId,
-            thoughtType: 'sphere'
+            thoughtType: 'sphere' // This is both the sphere structure AND the first thought
           };
-          
-          // Add the sphere structure first
-          set((prevState) => ({
-            thoughts: [...prevState.thoughts, sphereThought]
-          }));
+        } else {
+          // Regular thoughts within an existing sphere
+          newThought = {
+            id: Math.random().toString(36).substr(2, 9),
+            text: text.trim(),
+            title,
+            position,
+            rotation,
+            createdAt: new Date(),
+            parentId: targetSphereId,
+            mode: 'sphere',
+            attachments,
+            isMainSphere: false,
+            sphereId: targetSphereId,
+            thoughtType: 'thought'
+          };
         }
-        
-        newThought = {
-          id: Math.random().toString(36).substr(2, 9),
-          text: text.trim(),
-          title,
-          position,
-          rotation,
-          createdAt: new Date(),
-          parentId: targetSphereId,
-          mode: 'sphere',
-          attachments,
-          isMainSphere: false,
-          sphereId: targetSphereId,
-          thoughtType: 'thought'
-        };
       }
       
       set((prevState) => ({
@@ -264,8 +265,12 @@ export const useThoughts = create<ThoughtsState>()(
       set({ currentParentId: currentThought?.parentId || null });
     },
 
-    setViewMode: (mode: 'sphere' | 'list' | 'galaxy') => {
-      set({ viewMode: mode });
+    setViewMode: (mode: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2') => {
+      const currentState = get();
+      set({ 
+        viewMode: mode,
+        previousViewMode: currentState.viewMode !== mode ? currentState.viewMode : currentState.previousViewMode
+      });
     },
 
     generateThoughtPosition: () => {
@@ -283,12 +288,32 @@ export const useThoughts = create<ThoughtsState>()(
     },
     
     navigateToSphere: (sphereId: string) => {
+      console.log('🧭 navigateToSphere called with sphereId:', sphereId);
+      const currentState = get();
+      console.log('🧭 Current state before navigation:', {
+        currentSphereId: currentState.currentSphereId,
+        totalThoughts: currentState.thoughts.length
+      });
+      
       set({ currentSphereId: sphereId });
+      
+      const newState = get();
+      console.log('🧭 State after navigation:', {
+        currentSphereId: newState.currentSphereId,
+        totalThoughts: newState.thoughts.length
+      });
     },
     
     getSphereThoughts: (sphereId: string) => {
       const state = get();
-      return state.thoughts.filter(t => t.sphereId === sphereId && t.thoughtType === 'thought');
+      const filteredThoughts = state.thoughts.filter(t => t.sphereId === sphereId && t.thoughtType === 'thought');
+      console.log('🔍 getSphereThoughts:', {
+        sphereId,
+        totalThoughts: state.thoughts.length,
+        filteredThoughts: filteredThoughts.length,
+        allThoughts: state.thoughts.map(t => ({ id: t.id, sphereId: t.sphereId, thoughtType: t.thoughtType, title: t.title }))
+      });
+      return filteredThoughts;
     },
     
     getSpheres: () => {
@@ -316,8 +341,26 @@ export const useThoughts = create<ThoughtsState>()(
       const state = get();
       // Create a new sphere ID
       const newSphereId = Math.random().toString(36).substr(2, 9);
-      set({ currentSphereId: newSphereId });
+      // Set input mode to true so user can input the first thought
+      set({ 
+        currentSphereId: newSphereId,
+        isInputMode: true 
+      });
       return newSphereId;
+    },
+    
+    setPreviousViewMode: (mode: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2' | null) => {
+      set({ previousViewMode: mode });
+    },
+    
+    backToPreviousView: () => {
+      const state = get();
+      if (state.previousViewMode) {
+        set({ 
+          viewMode: state.previousViewMode,
+          previousViewMode: null // Clear previous view mode after going back
+        });
+      }
     },
     
     createSubsphere: (originalThought: Thought) => {
