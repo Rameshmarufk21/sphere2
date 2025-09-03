@@ -126,17 +126,30 @@ const Galaxy: React.FC = () => {
   const textColor = isDaytime() ? "#1f2937" : "#f1f5f9";
 
   return (
-    <div className="min-h-screen p-8" style={{ backgroundColor }}>
-      <h1 className="text-4xl font-bold text-center mb-12" style={{ color: textColor }}>
-          Galaxy Shelf
-        </h1>
+    <div style={{ 
+      height: '100%', 
+      padding: '20px', 
+      backgroundColor: '#ffffff',
+      overflow: 'auto'
+    }}>
         
         {spheres.length === 0 ? (
-        <div className="text-center text-xl" style={{ color: isDaytime() ? "#6b7280" : "#9ca3af" }}>
+        <div style={{ 
+          textAlign: 'center', 
+          fontSize: '18px', 
+          color: '#6b7280',
+          marginTop: '60px'
+        }}>
             No spheres stored yet. Create some thoughts first!
           </div>
         ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+          gap: '16px',
+          maxWidth: '100%',
+          margin: '0 auto'
+        }}>
             {spheres.map((sphere) => (
               <div
                 key={sphere.sphereId}

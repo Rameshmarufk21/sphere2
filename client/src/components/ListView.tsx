@@ -273,29 +273,36 @@ export const ListView: React.FC = () => {
 
   return (
     <div 
-      className="w-full h-full p-6 overflow-auto"
       style={{ 
-        backgroundColor: bgColor,
+        width: '100%',
+        height: '100%',
+        padding: '20px',
+        overflow: 'auto',
+        backgroundColor: '#ffffff',
         transition: 'background-color 0.5s ease'
       }}
     >
-      <div className="max-w-4xl mx-auto">
+      <div style={{ maxWidth: '100%', margin: '0 auto' }}>
         {/* Header */}
-        <div className="mb-10">
+        <div style={{ marginBottom: '20px' }}>
           <h1 
-            className="text-4xl font-bold mb-3 tracking-tight"
             style={{ 
               color: textColor,
-              fontFamily: 'Inter, system-ui, sans-serif',
-              fontWeight: '700'
+              fontSize: '24px',
+              fontWeight: '700',
+              letterSpacing: '-0.025em',
+              marginBottom: '8px',
+              fontFamily: 'Inter, system-ui, sans-serif'
             }}
           >
             Your Thoughts
           </h1>
           <p 
-            className="text-base opacity-75 font-medium"
             style={{ 
               color: textColor,
+              fontSize: '16px',
+              fontWeight: '400',
+              opacity: 0.75,
               fontFamily: 'Inter, system-ui, sans-serif'
             }}
           >

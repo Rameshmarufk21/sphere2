@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useThoughts } from '@/lib/stores/useThoughts';
 
 interface MenuProps {
-  currentView: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2';
-  onViewChange: (view: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2') => void;
+  currentView: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2' | 'mobile-dev';
+  onViewChange: (view: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2' | 'mobile-dev') => void;
 }
 
 const isDaytime = () => {
@@ -232,6 +232,35 @@ export const Menu: React.FC<MenuProps> = ({ currentView, onViewChange }) => {
             </svg>
             🧪 Test 2
           </button>
+
+          <button
+            onClick={() => {
+              onViewChange('mobile-dev');
+              setIsOpen(false);
+            }}
+            className="w-full px-5 py-3.5 text-left transition-all duration-200 flex items-center font-medium"
+            style={{
+              color: menuColor,
+              backgroundColor: currentView === 'mobile-dev' ? hoverColor : 'transparent',
+              fontSize: '0.95rem'
+            }}
+            onMouseEnter={(e) => {
+              if (currentView !== 'mobile-dev') {
+                e.currentTarget.style.backgroundColor = hoverColor;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (currentView !== 'mobile-dev') {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            📱 Mobile Dev
+          </button>
+
         </div>
       )}
     </div>

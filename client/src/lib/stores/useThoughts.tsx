@@ -30,8 +30,8 @@ interface ThoughtsState {
   targetRotation: { x: number; y: number } | null;
   currentParentId: string | null;
   currentSphereId: string | null; // Current sphere being viewed
-  viewMode: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2';
-  previousViewMode: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2' | null; // Track previous view for back navigation
+  viewMode: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2' | 'mobile-dev';
+  previousViewMode: 'sphere' | 'list' | 'galaxy' | 'test-x' | 'test-2' | 'mobile-dev' | null; // Track previous view for back navigation
   
   // Actions
   addThought: (text: string, attachments?: any, sphereId?: string) => void;

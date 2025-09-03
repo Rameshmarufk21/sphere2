@@ -6,8 +6,11 @@ import { ListView } from '@/components/ListView';
 import Galaxy from '@/components/Galaxy';
 import TestX from '@/components/TestX';
 import Test2 from '@/components/Test2';
+import MobileDev from '@/components/MobileDev';
+
 import { useThoughts } from '@/lib/stores/useThoughts';
 import '@fontsource/inter';
+
 
 // Helper function to determine if it's day or night
 const isDaytime = () => {
@@ -128,7 +131,9 @@ function App() {
       />
       
       {/* Main Content */}
-      {viewMode === 'sphere' ? (
+      {viewMode === 'mobile-dev' ? (
+        <MobileDev />
+      ) : viewMode === 'sphere' ? (
         <ThoughtSphere onSphereClick={handleSphereClick} />
       ) : viewMode === 'galaxy' ? (
         <Galaxy />
